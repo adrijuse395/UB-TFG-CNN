@@ -1,0 +1,124 @@
+{
+    "run_id": "run_20260505_235211",
+    "global_settings": {
+        "dataset": "cifar10",
+        "model": "vgg11_bn",
+        "batch_size": 128,
+        "use_gpu": true,
+        "num_classes": 10,
+        "pretrained": true
+    },
+    "experiments": [
+        {
+            "name": "Baseline VGG11",
+            "method": "None"
+        },
+        {
+            "name": "Tucker Compression (Deep Layer)",
+            "method": "Tucker",
+            "target_layers": [
+                "features.22"
+            ],
+            "rank": [
+                64,
+                64
+            ]
+        },
+        {
+            "name": "Tucker Compression (All Convs)",
+            "method": "Tucker",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 64
+        },
+        {
+            "name": "Tucker Compression (Convs + Linear)",
+            "method": "Tucker",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3"
+            ],
+            "rank": 64
+        },
+        {
+            "name": "CP Compression (All Convs)",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 64
+        },
+        {
+            "name": "CP Compression (Convs + Linear)",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3"
+            ],
+            "rank": 64
+        },
+        {
+            "name": "TT Compression (All Convs)",
+            "method": "TT",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 64
+        },
+        {
+            "name": "TT Compression (Convs + Linear)",
+            "method": "TT",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3"
+            ],
+            "rank": 64
+        }
+    ]
+}

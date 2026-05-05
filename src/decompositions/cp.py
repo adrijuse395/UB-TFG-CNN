@@ -1,0 +1,164 @@
+import gc
+import torch
+import torch.nn as nn
+from tensorly.decomposition import parafac
+from typing import Union, List
+from .base import BaseDecomposedLayer
+
+_cp_memory_mttkrp_registered = False
+
+
+def _ensure_memory_efficient_mttkrp() -> None:
+    """Optional TensorLy hook: avoids forming explicit Khatri–Rao in MTTKRP (lower RAM)."""
+    global _cp_memory_mttkrp_registered
+    if _cp_memory_mttkrp_registered:
+        return
+    import tensorly.tenalg as tlg
+    from tensorly.tenalg.core_tenalg.mttkrp import unfolding_dot_khatri_rao_memory
+
+    tlg.register_backend_method(
+        "unfolding_dot_khatri_rao", unfolding_dot_khatri_rao_memory
+    )
+    tlg.use_dynamic_dispatch()
+    _cp_memory_mttkrp_registered = True
+
+
+class CPDecomposedLayer(BaseDecomposedLayer):
+    """
+    Implements CP (Canonical Polyadic) Decomposition.
+    For Conv2d: Replaces with a sequence of 4 convolutions (Pointwise -> Depthwise Vertical -> Depthwise Horizontal -> Pointwise).
+    For Linear: Equivalent to Truncated SVD (rank-R approximation).
+    """
+
+    def compress(self, layer: Union[nn.Conv2d, nn.Linear], **kwargs):
+        rank = kwargs.get("rank")
+        if rank is None:
+            raise ValueError("CP decomposition requires a 'rank' parameter (int).")
+
+        # Ensure rank is an integer for CP
+        if isinstance(rank, list):
+            rank = rank[0]
+
+        parafac_n_iter_max = int(kwargs.get("parafac_n_iter_max", 60))
+        parafac_tol = float(kwargs.get("parafac_tol", 1e-5))
+        cp_parafac_on_cpu = bool(kwargs.get("cp_parafac_on_cpu", True))
+        cp_memory_efficient_mttkrp = bool(kwargs.get("cp_memory_efficient_mttkrp", True))
+
+        if isinstance(layer, nn.Conv2d):
+            self._compress_conv2d(
+                layer,
+                rank,
+                parafac_n_iter_max=parafac_n_iter_max,
+                parafac_tol=parafac_tol,
+                cp_parafac_on_cpu=cp_parafac_on_cpu,
+                cp_memory_efficient_mttkrp=cp_memory_efficient_mttkrp,
+            )
+        elif isinstance(layer, nn.Linear):
+            self._compress_linear(layer, rank)
+        else:
+            raise ValueError(f"CP decomposition not supported for {type(layer)}")
+
+    def _compress_conv2d(
+        self,
+        layer: nn.Conv2d,
+        rank: int,
+        *,
+        parafac_n_iter_max: int,
+        parafac_tol: float,
+        cp_parafac_on_cpu: bool,
+        cp_memory_efficient_mttkrp: bool,
+    ):
+        target_device = layer.weight.device
+        target_dtype = layer.weight.dtype
+
+        if cp_memory_efficient_mttkrp:
+            _ensure_memory_efficient_mttkrp()
+
+        if cp_parafac_on_cpu:
+            W = layer.weight.data.detach().cpu().float().contiguous()
+        else:
+            W = layer.weight.data.detach().float().contiguous()
+
+        try:
+            cp_weights, factors = parafac(
+                W,
+                rank=rank,
+                init="svd",
+                n_iter_max=parafac_n_iter_max,
+                tol=parafac_tol,
+            )
+        finally:
+            del W
+            gc.collect()
+
+        # Factors:
+        # f0: (out_channels, rank)
+        # f1: (in_channels, rank)
+        # f2: (kernel_h, rank)
+        # f3: (kernel_w, rank)
+        f_out, f_in, f_h, f_w = factors
+        cw = cp_weights
+
+        f_out = f_out.to(device=target_device, dtype=target_dtype)
+        f_in = f_in.to(device=target_device, dtype=target_dtype)
+        f_h = f_h.to(device=target_device, dtype=target_dtype)
+        f_w = f_w.to(device=target_device, dtype=target_dtype)
+        cw = cw.to(device=target_device, dtype=target_dtype)
+
+        # 1. Pointwise Convolution (Compress Input Channels)
+        # Weight shape: (rank, in_channels, 1, 1)
+        layer1 = nn.Conv2d(layer.in_channels, rank, kernel_size=1, stride=1, padding=0, bias=False)
+        layer1.weight.data = f_in.t().unsqueeze(-1).unsqueeze(-1)
+
+        # 2. Depthwise Vertical Spatial Convolution
+        # Weight shape: (rank, 1, kernel_h, 1)
+        layer2 = nn.Conv2d(rank, rank, kernel_size=(layer.kernel_size[0], 1),
+                           stride=(layer.stride[0], 1), padding=(layer.padding[0], 0),
+                           groups=rank, bias=False)
+        layer2.weight.data = f_h.t().unsqueeze(1).unsqueeze(-1)
+
+        # 3. Depthwise Horizontal Spatial Convolution
+        # Weight shape: (rank, 1, 1, kernel_w)
+        layer3 = nn.Conv2d(rank, rank, kernel_size=(1, layer.kernel_size[1]),
+                           stride=(1, layer.stride[1]), padding=(0, layer.padding[1]),
+                           groups=rank, bias=False)
+        layer3.weight.data = f_w.t().unsqueeze(1).unsqueeze(2)
+
+        # 4. Pointwise Convolution (Expand Output Channels)
+        # Include CP weights in this final layer
+        # Weight shape: (out_channels, rank, 1, 1)
+        layer4 = nn.Conv2d(rank, layer.out_channels, kernel_size=1, stride=1, padding=0, bias=layer.bias is not None)
+        f_out_weighted = f_out * cw.unsqueeze(0)
+        layer4.weight.data = f_out_weighted.unsqueeze(-1).unsqueeze(-1)
+
+        if layer.bias is not None:
+            layer4.bias.data = layer.bias.data
+
+        self.compressed_ops = nn.Sequential(layer1, layer2, layer3, layer4)
+
+        if target_device.type == "cuda":
+            torch.cuda.empty_cache()
+
+    def _compress_linear(self, layer: nn.Linear, rank: int):
+        """
+        CP decomposition of a 2D tensor is basically SVD.
+        """
+        rank = min(rank, min(layer.in_features, layer.out_features))
+
+        W = layer.weight.data
+        U, S, V = torch.svd(W)
+
+        U_trunc = U[:, :rank]
+        S_trunc = S[:rank]
+        V_trunc = V[:, :rank]
+
+        first_layer = nn.Linear(layer.in_features, rank, bias=False)
+        first_layer.weight.data = V_trunc.t()
+
+        second_layer = nn.Linear(rank, layer.out_features, bias=layer.bias is not None)
+        second_layer.weight.data = torch.mm(U_trunc, torch.diag(S_trunc))
+
+        if layer.bias is not None:
+            second_layer.bias.data = layer.bias.data
+
+        self.compressed_ops = nn.Sequential(first_layer, second_layer)
