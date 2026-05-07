@@ -1,4 +1,5 @@
 import gc
+import time
 import torch
 import torch.nn as nn
 from tensorly.decomposition import parafac
@@ -43,6 +44,13 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         parafac_tol = float(kwargs.get("parafac_tol", 1e-5))
         cp_parafac_on_cpu = bool(kwargs.get("cp_parafac_on_cpu", True))
         cp_memory_efficient_mttkrp = bool(kwargs.get("cp_memory_efficient_mttkrp", True))
+        cp_layer_timeout_s = float(kwargs.get("cp_layer_timeout_s", 20.0))
+        cp_abort_if_mem_available_mb_below = int(
+            kwargs.get("cp_abort_if_mem_available_mb_below", 800)
+        )
+        cp_init = str(kwargs.get("cp_init", "random")).lower()
+        if cp_init not in {"svd", "random"}:
+            cp_init = "random"
 
         if isinstance(layer, nn.Conv2d):
             self._compress_conv2d(
@@ -52,6 +60,9 @@ class CPDecomposedLayer(BaseDecomposedLayer):
                 parafac_tol=parafac_tol,
                 cp_parafac_on_cpu=cp_parafac_on_cpu,
                 cp_memory_efficient_mttkrp=cp_memory_efficient_mttkrp,
+                cp_layer_timeout_s=cp_layer_timeout_s,
+                cp_abort_if_mem_available_mb_below=cp_abort_if_mem_available_mb_below,
+                cp_init=cp_init,
             )
         elif isinstance(layer, nn.Linear):
             self._compress_linear(layer, rank)
@@ -67,6 +78,9 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         parafac_tol: float,
         cp_parafac_on_cpu: bool,
         cp_memory_efficient_mttkrp: bool,
+        cp_layer_timeout_s: float,
+        cp_abort_if_mem_available_mb_below: int,
+        cp_init: str,
     ):
         target_device = layer.weight.device
         target_dtype = layer.weight.dtype
@@ -79,17 +93,57 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         else:
             W = layer.weight.data.detach().float().contiguous()
 
+        # Guard rail: do not let CP use very high ranks on deep layers.
+        rank = max(1, min(int(rank), int(layer.in_channels), int(layer.out_channels)))
+
+        mem_guard_triggered = {"value": False}
+        timeout_triggered = {"value": False}
+        t_start = time.perf_counter()
+
+        def _mem_available_mb() -> int:
+            try:
+                with open("/proc/meminfo", "r", encoding="utf-8") as f:
+                    for line in f:
+                        if line.startswith("MemAvailable:"):
+                            kb = int(line.split()[1])
+                            return kb // 1024
+            except Exception:
+                return 10**9
+            return 10**9
+
+        def _cp_callback(_cp_tensor, _rec_error):
+            elapsed = time.perf_counter() - t_start
+            if elapsed > cp_layer_timeout_s:
+                timeout_triggered["value"] = True
+                return True
+            if _mem_available_mb() < cp_abort_if_mem_available_mb_below:
+                mem_guard_triggered["value"] = True
+                return True
+            return False
+
         try:
             cp_weights, factors = parafac(
                 W,
                 rank=rank,
-                init="svd",
+                init=cp_init,
                 n_iter_max=parafac_n_iter_max,
                 tol=parafac_tol,
+                callback=_cp_callback,
             )
         finally:
             del W
             gc.collect()
+
+        if timeout_triggered["value"]:
+            raise RuntimeError(
+                f"CP guard timeout reached ({cp_layer_timeout_s:.1f}s) for layer "
+                f"{layer.in_channels}->{layer.out_channels}."
+            )
+        if mem_guard_triggered["value"]:
+            raise RuntimeError(
+                "CP memory guard triggered: available RAM dropped below "
+                f"{cp_abort_if_mem_available_mb_below} MB."
+            )
 
         # Factors:
         # f0: (out_channels, rank)

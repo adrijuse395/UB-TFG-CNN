@@ -1,1 +1,0 @@
-experiment_name,method,target_layers,rank,total_parameters,compression_ratio,compression_time_s,macs_g,latency_ms,throughput_fps,accuracy,precision,recall,f1_score

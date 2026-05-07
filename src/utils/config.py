@@ -14,6 +14,13 @@ DEFAULT_RESOURCE_LIMITS: Dict[str, Any] = {
     "cp_parafac_on_cpu": True,
     # TensorLy: explicit Khatri–Rao MTTKRP uses less RAM than the default fast path.
     "cp_memory_efficient_mttkrp": True,
+    # Safety controls for CP layer decomposition.
+    "cp_layer_timeout_s": 20.0,
+    "cp_abort_if_mem_available_mb_below": 800,
+    "cp_init": "random",
+    # Keep CPU pressure bounded on laptops.
+    "cpu_num_threads": 2,
+    "cpu_num_interop_threads": 1,
 }
 
 
@@ -39,6 +46,15 @@ class ConfigParser:
         merged["cp_parafac_tol"] = float(merged["cp_parafac_tol"])
         merged["cp_parafac_on_cpu"] = bool(merged["cp_parafac_on_cpu"])
         merged["cp_memory_efficient_mttkrp"] = bool(merged["cp_memory_efficient_mttkrp"])
+        merged["cp_layer_timeout_s"] = float(merged["cp_layer_timeout_s"])
+        merged["cp_abort_if_mem_available_mb_below"] = int(
+            merged["cp_abort_if_mem_available_mb_below"]
+        )
+        merged["cp_init"] = str(merged["cp_init"]).strip().lower()
+        if merged["cp_init"] not in {"svd", "random"}:
+            merged["cp_init"] = "random"
+        merged["cpu_num_threads"] = int(merged["cpu_num_threads"])
+        merged["cpu_num_interop_threads"] = int(merged["cpu_num_interop_threads"])
         return merged
 
     @staticmethod

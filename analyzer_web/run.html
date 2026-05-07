@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Run View</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" />
+  <link rel="stylesheet" href="./assets/styles.css" />
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body data-page="run">
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1 class="title">Run detail</h1>
+        <div class="subtitle">Run: <span class="pill" id="runLabel"></span></div>
+        <div class="meta-line" id="dataMetaLine"></div>
+      </div>
+      <div>
+        <a class="link" href="./index.html">Back to dashboard</a>
+      </div>
+    </div>
+
+    <div id="errorBox" class="pill"></div>
+
+    <div id="runOverviewPlot" class="panel chart tall" style="margin-bottom: 14px;"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>experiment</th><th>method</th><th>phase</th><th>rank</th>
+            <th>accuracy</th><th>compression_ratio</th><th>latency_ms</th><th>ft_time_s</th>
+          </tr>
+        </thead>
+        <tbody id="runTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="./assets/app.js"></script>
+</body>
+</html>

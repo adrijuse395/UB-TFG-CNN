@@ -36,12 +36,18 @@ class ModelReplacer:
                 # Target matched. Validate type.
                 if isinstance(child, (nn.Conv2d, nn.Linear)):
                     print(f"    [Replacer] Replacing '{full_name}' ({type(child).__name__}) with {decomposition_class.__name__}...")
-                    
-                    # Create the decomposed layer
-                    decomposed_layer = decomposition_class.from_layer(child, **kwargs)
-                    
-                    # Swap the module
-                    setattr(module, name, decomposed_layer)
+                    try:
+                        # Create the decomposed layer
+                        decomposed_layer = decomposition_class.from_layer(child, **kwargs)
+
+                        # Swap the module
+                        setattr(module, name, decomposed_layer)
+                    except Exception as exc:
+                        # Keep original layer if decomposition fails for this target.
+                        print(
+                            f"    [Warning] Failed to decompose '{full_name}': {exc}. "
+                            "Keeping original layer."
+                        )
                 else:
                     print(f"    [Warning] Target '{full_name}' is a {type(child).__name__}, which is not supported for decomposition. Skipping.")
             else:

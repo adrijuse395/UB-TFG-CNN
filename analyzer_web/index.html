@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Experiment Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" />
+  <link rel="stylesheet" href="./assets/styles.css" />
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body data-page="dashboard">
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1 class="title">Experiment results</h1>
+        <div class="subtitle">Compression and fine-tuning benchmarks (TFG analysis module).</div>
+        <div class="meta-line" id="dataMetaLine"></div>
+      </div>
+      <div>
+        <a class="link" href="./run.html">Per-run summary</a>
+      </div>
+    </div>
+
+    <div id="errorBox" class="pill"></div>
+
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab active" data-tab="data" role="tab">Data &amp; filters</button>
+      <button type="button" class="tab" data-tab="chart" role="tab">Custom chart</button>
+    </div>
+
+    <section id="panel-data" class="tab-panel active" role="tabpanel">
+      <div class="controls">
+        <div class="panel"><label>Run</label><select id="runSelect"></select></div>
+        <div class="panel"><label>Method</label><select id="methodSelect"></select></div>
+        <div class="panel"><label>Phase</label><select id="phaseSelect"></select></div>
+        <div class="panel"><label>Experiment</label><select id="experimentSelect"></select></div>
+        <div class="panel">
+          <label>Baseline</label>
+          <label><input type="checkbox" id="showBaselineToggle" checked /> Show baseline row</label>
+        </div>
+        <div class="panel"><label>Quick Y (table context)</label><select id="metricSelect"></select></div>
+        <div class="panel"><label>Color by</label><select id="colorBySelect"></select></div>
+      </div>
+
+      <div class="kpis" id="kpiGrid"></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>run_id</th><th>experiment</th><th>method</th><th>phase</th><th>rank</th>
+              <th>accuracy</th><th>Δ vs baseline</th><th>compression</th><th>latency_ms</th><th>fps</th><th>ft_s</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="panel-chart" class="tab-panel" role="tabpanel">
+      <div class="chart-controls">
+        <div class="panel">
+          <label>X variable</label>
+          <select id="chartXField"></select>
+        </div>
+        <div class="panel">
+          <label>Y variable</label>
+          <select id="chartYField"></select>
+        </div>
+        <div class="panel">
+          <label>Plot type</label>
+          <select id="chartPlotType">
+            <option value="scatter">Scatter</option>
+            <option value="line">Line (per series)</option>
+          </select>
+        </div>
+        <div class="panel">
+          <label>Series (color)</label>
+          <select id="chartSeriesField"></select>
+        </div>
+        <div class="panel span-2">
+          <label>Chart title (optional)</label>
+          <input type="text" id="chartTitleInput" placeholder="Auto from axes" />
+        </div>
+        <div class="panel">
+          <label>X-axis label (optional)</label>
+          <input type="text" id="chartXLabelInput" placeholder="Default from variable name" />
+        </div>
+        <div class="panel">
+          <label>Y-axis label (optional)</label>
+          <input type="text" id="chartYLabelInput" placeholder="Default from variable name" />
+        </div>
+      </div>
+      <div id="customChart" class="panel chart"></div>
+    </section>
+  </div>
+
+  <script src="./assets/app.js"></script>
+</body>
+</html>

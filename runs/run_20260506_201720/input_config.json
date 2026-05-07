@@ -1,4 +1,5 @@
 {
+    "run_id": "run_20260506_201720",
     "global_settings": {
         "dataset": "cifar10",
         "model": "vgg11_bn",

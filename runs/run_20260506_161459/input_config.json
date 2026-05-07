@@ -1,5 +1,5 @@
 {
-    "run_id": "run_20260505_235211",
+    "run_id": "run_20260506_161459",
     "global_settings": {
         "dataset": "cifar10",
         "model": "vgg11_bn",
@@ -69,7 +69,7 @@
                 "features.22",
                 "features.25"
             ],
-            "rank": 64
+            "rank": 16
         },
         {
             "name": "CP Compression (Convs + Linear)",
@@ -86,7 +86,7 @@
                 "classifier.0",
                 "classifier.3"
             ],
-            "rank": 64
+            "rank": 16
         },
         {
             "name": "TT Compression (All Convs)",

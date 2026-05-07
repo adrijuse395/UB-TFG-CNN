@@ -1,4 +1,5 @@
 {
+    "run_id": "run_20260506_171325",
     "global_settings": {
         "dataset": "cifar10",
         "model": "vgg11_bn",
@@ -21,8 +22,8 @@
     },
     "experiments": [
         {
-            "name": "Tucker rank 02 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 02 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -37,8 +38,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 02 | ft",
-            "method": "Tucker",
+            "name": "TT rank 02 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -61,8 +62,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 04 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 04 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -77,8 +78,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 04 | ft",
-            "method": "Tucker",
+            "name": "TT rank 04 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -101,8 +102,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 06 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 06 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -117,8 +118,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 06 | ft",
-            "method": "Tucker",
+            "name": "TT rank 06 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -141,8 +142,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 08 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 08 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -157,8 +158,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 08 | ft",
-            "method": "Tucker",
+            "name": "TT rank 08 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -181,8 +182,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 10 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 10 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -197,8 +198,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 10 | ft",
-            "method": "Tucker",
+            "name": "TT rank 10 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -221,8 +222,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 12 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 12 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -237,8 +238,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 12 | ft",
-            "method": "Tucker",
+            "name": "TT rank 12 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -261,8 +262,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 14 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 14 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -277,8 +278,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 14 | ft",
-            "method": "Tucker",
+            "name": "TT rank 14 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -301,8 +302,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 16 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 16 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -317,8 +318,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 16 | ft",
-            "method": "Tucker",
+            "name": "TT rank 16 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -341,8 +342,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 18 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 18 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -357,8 +358,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 18 | ft",
-            "method": "Tucker",
+            "name": "TT rank 18 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -381,8 +382,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 20 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 20 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -397,8 +398,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 20 | ft",
-            "method": "Tucker",
+            "name": "TT rank 20 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -421,8 +422,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 24 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 24 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -437,8 +438,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 24 | ft",
-            "method": "Tucker",
+            "name": "TT rank 24 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -461,8 +462,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 28 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 28 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -477,8 +478,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 28 | ft",
-            "method": "Tucker",
+            "name": "TT rank 28 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -501,8 +502,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 32 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 32 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -517,8 +518,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 32 | ft",
-            "method": "Tucker",
+            "name": "TT rank 32 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -541,8 +542,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 36 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 36 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -557,8 +558,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 36 | ft",
-            "method": "Tucker",
+            "name": "TT rank 36 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -581,8 +582,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 40 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 40 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -597,8 +598,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 40 | ft",
-            "method": "Tucker",
+            "name": "TT rank 40 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -621,8 +622,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 44 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 44 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -637,8 +638,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 44 | ft",
-            "method": "Tucker",
+            "name": "TT rank 44 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -661,8 +662,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 48 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 48 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -677,8 +678,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 48 | ft",
-            "method": "Tucker",
+            "name": "TT rank 48 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -701,8 +702,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 52 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 52 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -717,8 +718,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 52 | ft",
-            "method": "Tucker",
+            "name": "TT rank 52 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -741,8 +742,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 58 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 58 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -757,8 +758,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 58 | ft",
-            "method": "Tucker",
+            "name": "TT rank 58 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -781,8 +782,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "Tucker rank 64 | no_ft",
-            "method": "Tucker",
+            "name": "TT rank 64 | no_ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -797,8 +798,8 @@
             "fine_tuning": false
         },
         {
-            "name": "Tucker rank 64 | ft",
-            "method": "Tucker",
+            "name": "TT rank 64 | ft",
+            "method": "TT",
             "target_layers": [
                 "features.0",
                 "features.4",
