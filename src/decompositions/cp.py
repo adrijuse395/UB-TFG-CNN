@@ -51,6 +51,7 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         cp_init = str(kwargs.get("cp_init", "random")).lower()
         if cp_init not in {"svd", "random"}:
             cp_init = "random"
+        cp_normalize_factors = bool(kwargs.get("cp_normalize_factors", True))
 
         if isinstance(layer, nn.Conv2d):
             self._compress_conv2d(
@@ -63,6 +64,7 @@ class CPDecomposedLayer(BaseDecomposedLayer):
                 cp_layer_timeout_s=cp_layer_timeout_s,
                 cp_abort_if_mem_available_mb_below=cp_abort_if_mem_available_mb_below,
                 cp_init=cp_init,
+                cp_normalize_factors=cp_normalize_factors,
             )
         elif isinstance(layer, nn.Linear):
             self._compress_linear(layer, rank)
@@ -81,6 +83,7 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         cp_layer_timeout_s: float,
         cp_abort_if_mem_available_mb_below: int,
         cp_init: str,
+        cp_normalize_factors: bool,
     ):
         target_device = layer.weight.device
         target_dtype = layer.weight.dtype
@@ -93,8 +96,21 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         else:
             W = layer.weight.data.detach().float().contiguous()
 
-        # Guard rail: do not let CP use very high ranks on deep layers.
+        # Guard rail 1: do not let CP use very high ranks on deep layers.
         rank = max(1, min(int(rank), int(layer.in_channels), int(layer.out_channels)))
+        # Guard rail 2: enforce rank where CP still yields parameter compression.
+        in_ch = int(layer.in_channels)
+        out_ch = int(layer.out_channels)
+        kh = int(layer.kernel_size[0])
+        kw = int(layer.kernel_size[1])
+        denom = max(1, in_ch + out_ch + kh + kw)
+        max_rank_compression = max(1, int((in_ch * out_ch * kh * kw) / denom))
+        if rank > max_rank_compression:
+            print(
+                f"    [CP] rank capped for compression: {rank} -> {max_rank_compression} "
+                f"(layer {in_ch}->{out_ch}, k={kh}x{kw})"
+            )
+            rank = max_rank_compression
 
         mem_guard_triggered = {"value": False}
         timeout_triggered = {"value": False}
@@ -110,6 +126,27 @@ class CPDecomposedLayer(BaseDecomposedLayer):
             except Exception:
                 return 10**9
             return 10**9
+
+        # Pre-flight RAM guard: callback is per-iteration and may trigger too late.
+        # This intentionally over-estimates ALS intermediates to fail fast on risky ranks.
+        bytes_per_elem = 4  # float32
+        tensor_bytes = int(layer.weight.numel()) * bytes_per_elem
+        estimated_peak_mb = (tensor_bytes * max(8, min(20, rank // 4))) / (1024 * 1024)
+        mem_avail_mb = _mem_available_mb()
+        if mem_avail_mb < (cp_abort_if_mem_available_mb_below + int(estimated_peak_mb)):
+            raise RuntimeError(
+                "CP pre-flight memory guard: estimated ALS peak too high for current RAM "
+                f"(avail={mem_avail_mb} MB, est_peak={estimated_peak_mb:.0f} MB, "
+                f"floor={cp_abort_if_mem_available_mb_below} MB)."
+            )
+
+        # Prefer SVD init in heavy layers/ranks for stabler and usually shorter ALS runs.
+        if cp_init == "random" and (in_ch >= 256 or out_ch >= 256 or rank >= 32):
+            cp_init = "svd"
+            print(
+                f"    [CP] switching init to 'svd' for stability "
+                f"(layer {in_ch}->{out_ch}, rank={rank})."
+            )
 
         def _cp_callback(_cp_tensor, _rec_error):
             elapsed = time.perf_counter() - t_start
@@ -128,6 +165,7 @@ class CPDecomposedLayer(BaseDecomposedLayer):
                 init=cp_init,
                 n_iter_max=parafac_n_iter_max,
                 tol=parafac_tol,
+                normalize_factors=cp_normalize_factors,
                 callback=_cp_callback,
             )
         finally:

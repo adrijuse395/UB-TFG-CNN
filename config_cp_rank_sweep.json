@@ -1,0 +1,825 @@
+{
+    "global_settings": {
+        "dataset": "cifar10",
+        "model": "vgg11_bn",
+        "batch_size": 128,
+        "use_gpu": true,
+        "num_classes": 10,
+        "pretrained": true
+    },
+    "resource_limits": {
+        "max_rank": 64,
+        "cp_parafac_n_iter_max": 25,
+        "cp_parafac_tol": 0.0001,
+        "cp_parafac_on_cpu": true,
+        "cp_memory_efficient_mttkrp": true,
+        "cp_layer_timeout_s": 12.0,
+        "cp_abort_if_mem_available_mb_below": 1200,
+        "cp_init": "svd",
+        "cp_normalize_factors": true,
+        "cpu_num_threads": 2,
+        "cpu_num_interop_threads": 1
+    },
+    "experiments": [
+        {
+            "name": "CP rank 02 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 2,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 02 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 2,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 04 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 4,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 04 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 4,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 06 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 6,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 06 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 6,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 08 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 8,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 08 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 8,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 10 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 10,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 10 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 10,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 12 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 12,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 12 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 12,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 14 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 14,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 14 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 14,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 16 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 16,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 16 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 16,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 18 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 18,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 18 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 18,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 20 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 20,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 20 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 20,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 24 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 24,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 24 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 24,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 28 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 28,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 28 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 28,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 32 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 32,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 32 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 32,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 36 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 36,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 36 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 36,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 40 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 40,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 40 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 40,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 44 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 44,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 44 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 44,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 48 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 48,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 48 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 48,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 52 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 52,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 52 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 52,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 58 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 58,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 58 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 58,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        },
+        {
+            "name": "CP rank 64 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 64,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 64 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25"
+            ],
+            "rank": 64,
+            "fine_tuning": true,
+            "epochs": 4,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 1,
+            "min_improvement": 0.5,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20
+        }
+    ]
+}

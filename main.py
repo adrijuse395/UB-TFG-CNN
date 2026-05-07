@@ -110,6 +110,7 @@ def main():
         f"max_batch_size={resource_limits['max_batch_size']}, "
         f"cp_parafac_n_iter_max={resource_limits['cp_parafac_n_iter_max']}, "
         f"cp_parafac_on_cpu={resource_limits['cp_parafac_on_cpu']}, "
+        f"cp_normalize_factors={resource_limits['cp_normalize_factors']}, "
         f"cp_layer_timeout_s={resource_limits['cp_layer_timeout_s']}, "
         f"cp_mem_guard_mb={resource_limits['cp_abort_if_mem_available_mb_below']}, "
         f"cp_init={resource_limits['cp_init']}",
@@ -260,6 +261,7 @@ def main():
                 "cp_abort_if_mem_available_mb_below"
             ]
             compress_kw["cp_init"] = resource_limits["cp_init"]
+            compress_kw["cp_normalize_factors"] = resource_limits["cp_normalize_factors"]
 
         # Deep-copy baseline weights into a fresh model (CPU-side tensors).
         current_model = copy.deepcopy(base_model)

@@ -14,6 +14,7 @@ DEFAULT_RESOURCE_LIMITS: Dict[str, Any] = {
     "cp_parafac_on_cpu": True,
     # TensorLy: explicit Khatri–Rao MTTKRP uses less RAM than the default fast path.
     "cp_memory_efficient_mttkrp": True,
+    "cp_normalize_factors": True,
     # Safety controls for CP layer decomposition.
     "cp_layer_timeout_s": 20.0,
     "cp_abort_if_mem_available_mb_below": 800,
@@ -46,6 +47,7 @@ class ConfigParser:
         merged["cp_parafac_tol"] = float(merged["cp_parafac_tol"])
         merged["cp_parafac_on_cpu"] = bool(merged["cp_parafac_on_cpu"])
         merged["cp_memory_efficient_mttkrp"] = bool(merged["cp_memory_efficient_mttkrp"])
+        merged["cp_normalize_factors"] = bool(merged["cp_normalize_factors"])
         merged["cp_layer_timeout_s"] = float(merged["cp_layer_timeout_s"])
         merged["cp_abort_if_mem_available_mb_below"] = int(
             merged["cp_abort_if_mem_available_mb_below"]
