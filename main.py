@@ -99,7 +99,13 @@ def main():
     config = ConfigParser.load_config(args.config)
     global_settings = config.get("global_settings", {})
     experiments     = config.get("experiments", [])
-    resource_limits = ConfigParser.merge_resource_limits(global_settings)
+    # Backward/forward compatible resource_limits location:
+    # - preferred in current configs: top-level "resource_limits"
+    # - legacy fallback: global_settings["resource_limits"]
+    resource_limits_cfg = config.get("resource_limits", global_settings.get("resource_limits", {}))
+    resource_limits = ConfigParser.merge_resource_limits(
+        {**global_settings, "resource_limits": resource_limits_cfg}
+    )
 
     # Execution selector (new):
     # global_settings.execution = {"gpu": true/false, "on": "cpu"|"gpu"}
