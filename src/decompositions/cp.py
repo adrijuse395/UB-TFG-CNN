@@ -144,7 +144,7 @@ class CPDecomposedLayer(BaseDecomposedLayer):
             cp_weights, factors = parafac(
                 W,
                 rank=rank,
-                init=cp_init,
+                init='random',
                 n_iter_max=parafac_n_iter_max,
                 tol=parafac_tol,
                 normalize_factors=cp_normalize_factors,
