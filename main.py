@@ -101,7 +101,18 @@ def main():
     experiments     = config.get("experiments", [])
     resource_limits = ConfigParser.merge_resource_limits(global_settings)
 
-    device = "cuda" if torch.cuda.is_available() and global_settings.get("use_gpu", True) else "cpu"
+    # Execution selector (new):
+    # global_settings.execution = {"gpu": true/false, "on": "cpu"|"gpu"}
+    # Backward compatible with legacy global_settings.use_gpu.
+    execution = global_settings.get("execution", {}) or {}
+    exec_gpu_enabled = bool(execution.get("gpu", global_settings.get("use_gpu", True)))
+    exec_on = str(execution.get("on", "gpu")).strip().lower()
+    if exec_on not in {"cpu", "gpu"}:
+        exec_on = "gpu"
+    if exec_on == "cpu":
+        device = "cpu"
+    else:
+        device = "cuda" if (torch.cuda.is_available() and exec_gpu_enabled) else "cpu"
     print(f"[*] Using device: {device}")
     print(
         "[*] resource_limits:",
@@ -114,6 +125,10 @@ def main():
         f"cp_layer_timeout_s={resource_limits['cp_layer_timeout_s']}, "
         f"cp_mem_guard_mb={resource_limits['cp_abort_if_mem_available_mb_below']}, "
         f"cp_init={resource_limits['cp_init']}",
+    )
+    print(
+        "[*] execution:",
+        f"requested_on={exec_on}, gpu_enabled={exec_gpu_enabled}, resolved_device={device}"
     )
     torch.set_num_threads(max(1, resource_limits["cpu_num_threads"]))
     try:
@@ -249,7 +264,7 @@ def main():
         rank = rank_clamped
 
         compress_kw = {"rank": rank}
-        if method == "CP":
+        if method in {"CP", "CP_ALS_LIGHT"}:
             compress_kw["parafac_n_iter_max"] = resource_limits["cp_parafac_n_iter_max"]
             compress_kw["parafac_tol"] = resource_limits["cp_parafac_tol"]
             compress_kw["cp_parafac_on_cpu"] = resource_limits["cp_parafac_on_cpu"]
@@ -262,9 +277,22 @@ def main():
             ]
             compress_kw["cp_init"] = resource_limits["cp_init"]
             compress_kw["cp_normalize_factors"] = resource_limits["cp_normalize_factors"]
+        if method == "CP_HOSVD":
+            # Reuse same switch semantics: on_cpu=True keeps SVD work off GPU.
+            compress_kw["cp_hosvd_on_cpu"] = resource_limits["cp_parafac_on_cpu"]
 
         # Deep-copy baseline weights into a fresh model (CPU-side tensors).
         current_model = copy.deepcopy(base_model)
+        # Optional: run CP factorization directly on GPU when configured.
+        if method in {"CP", "CP_ALS_LIGHT"} and (not compress_kw.get("cp_parafac_on_cpu", True)):
+            if device.startswith("cuda") and torch.cuda.is_available():
+                current_model.to(device)
+            else:
+                print(
+                    "    [Warning] CP requested on GPU but CUDA is unavailable; "
+                    "falling back to CPU factorization."
+                )
+                compress_kw["cp_parafac_on_cpu"] = True
 
         # Replace the target layers and time the operation
         t0 = time.perf_counter()

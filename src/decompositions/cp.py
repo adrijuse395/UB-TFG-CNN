@@ -6,23 +6,6 @@ from tensorly.decomposition import parafac
 from typing import Union, List
 from .base import BaseDecomposedLayer
 
-_cp_memory_mttkrp_registered = False
-
-
-def _ensure_memory_efficient_mttkrp() -> None:
-    """Optional TensorLy hook: avoids forming explicit Khatri–Rao in MTTKRP (lower RAM)."""
-    global _cp_memory_mttkrp_registered
-    if _cp_memory_mttkrp_registered:
-        return
-    import tensorly.tenalg as tlg
-    from tensorly.tenalg.core_tenalg.mttkrp import unfolding_dot_khatri_rao_memory
-
-    tlg.register_backend_method(
-        "unfolding_dot_khatri_rao", unfolding_dot_khatri_rao_memory
-    )
-    tlg.use_dynamic_dispatch()
-    _cp_memory_mttkrp_registered = True
-
 
 class CPDecomposedLayer(BaseDecomposedLayer):
     """
@@ -52,7 +35,6 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         if cp_init not in {"svd", "random"}:
             cp_init = "random"
         cp_normalize_factors = bool(kwargs.get("cp_normalize_factors", True))
-
         if isinstance(layer, nn.Conv2d):
             self._compress_conv2d(
                 layer,
@@ -88,8 +70,8 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         target_device = layer.weight.device
         target_dtype = layer.weight.dtype
 
-        if cp_memory_efficient_mttkrp:
-            _ensure_memory_efficient_mttkrp()
+        # Keep CP path conservative: avoid experimental TensorLy backend hooks here.
+        # cp_memory_efficient_mttkrp is intentionally ignored to reduce crash risk.
 
         if cp_parafac_on_cpu:
             W = layer.weight.data.detach().cpu().float().contiguous()

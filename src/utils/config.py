@@ -73,10 +73,10 @@ class ConfigParser:
                 return [max(1, min(int(x), max_r)) for x in rank]
             return max(1, min(int(rank), max_r))
 
-        if method == "CP":
+        if method in {"CP", "CP_HOSVD", "CP_ALS_LIGHT"}:
             if isinstance(rank, list):
                 if not rank:
-                    raise ValueError("CP rank list is empty.")
+                    raise ValueError(f"{method} rank list is empty.")
                 return [max(1, min(int(rank[0]), max_r))]
             return max(1, min(int(rank), max_r))
 
