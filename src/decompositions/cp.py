@@ -134,11 +134,38 @@ class CPDecomposedLayer(BaseDecomposedLayer):
                 return True
             return False
 
+        def _expand_factor_cols(mat: torch.Tensor, out_rank: int) -> torch.Tensor:
+            if mat.shape[1] == out_rank:
+                return mat
+            if mat.shape[1] > out_rank:
+                return mat[:, :out_rank]
+            repeats = (out_rank + mat.shape[1] - 1) // mat.shape[1]
+            return mat.repeat(1, repeats)[:, :out_rank]
+
+        def _safe_svd_init(weight_4d: torch.Tensor, out_rank: int):
+            """
+            Build CP factors with per-mode SVD using full_matrices=False to avoid
+            huge right-singular matrices on spatial unfoldings.
+            """
+            factors_init = []
+            for mode in range(weight_4d.ndim):
+                perm = [mode] + [i for i in range(weight_4d.ndim) if i != mode]
+                unfolded = weight_4d.permute(perm).reshape(weight_4d.shape[mode], -1)
+                U, _, _ = torch.linalg.svd(unfolded, full_matrices=False)
+                factor = _expand_factor_cols(U, out_rank)
+                factors_init.append(factor)
+            return factors_init
+
+        parafac_init = "random"
+        if cp_init == "svd":
+            safe_factors = _safe_svd_init(W, rank)
+            parafac_init = (None, safe_factors)
+
         try:
             cp_weights, factors = parafac(
                 W,
                 rank=rank,
-                init='random',
+                init=parafac_init,
                 n_iter_max=parafac_n_iter_max,
                 tol=parafac_tol,
                 normalize_factors=cp_normalize_factors,
