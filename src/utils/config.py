@@ -24,10 +24,9 @@ DEFAULT_METHOD_PARAMS: Dict[str, Dict[str, Any]] = {
     "CP": {},
     "CP_GD": {
         "cp_gd_steps": 3000,
-        "cp_gd_lr": 0.05,
+        "cp_gd_lr": 0.01,
         "cp_gd_on_cpu": True,
         "cp_gd_init": "svd",
-        "cp_gd_scheduler_patience": 200,
     },
 }
 
@@ -53,12 +52,11 @@ class ConfigParser:
         p = dict(params)
         if method == "CP_GD":
             p["cp_gd_steps"] = int(p.get("cp_gd_steps", 3000))
-            p["cp_gd_lr"] = float(p.get("cp_gd_lr", 0.05))
+            p["cp_gd_lr"] = float(p.get("cp_gd_lr", 0.01))
             p["cp_gd_on_cpu"] = bool(p.get("cp_gd_on_cpu", True))
             p["cp_gd_init"] = str(p.get("cp_gd_init", "svd")).strip().lower()
             if p["cp_gd_init"] not in {"svd", "random"}:
                 p["cp_gd_init"] = "svd"
-            p["cp_gd_scheduler_patience"] = int(p.get("cp_gd_scheduler_patience", 200))
         return p
 
     @staticmethod

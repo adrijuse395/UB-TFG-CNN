@@ -32,7 +32,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
                 layer,
                 int(rank),
                 cp_gd_steps=int(kwargs.get("cp_gd_steps", 3000)),
-                cp_gd_lr=float(kwargs.get("cp_gd_lr", 0.05)),
+                cp_gd_lr=float(kwargs.get("cp_gd_lr", 0.01)),
                 cp_gd_on_cpu=bool(kwargs.get("cp_gd_on_cpu", True)),
                 cp_gd_timeout_s=float(kwargs.get("cp_gd_timeout_s", 180.0)),
                 cp_abort_if_mem_available_mb_below=int(
@@ -40,9 +40,6 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
                 ),
                 cp_gd_init=str(kwargs.get("cp_gd_init", "svd")).lower(),
                 cp_gd_grad_clip=float(kwargs.get("cp_gd_grad_clip", 0.0)),
-                cp_gd_scheduler_patience=int(
-                    kwargs.get("cp_gd_scheduler_patience", 200)
-                ),
             )
         elif isinstance(layer, nn.Linear):
             self._compress_linear(layer, int(rank))
@@ -134,7 +131,6 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
         cp_abort_if_mem_available_mb_below: int,
         cp_gd_init: str,
         cp_gd_grad_clip: float,
-        cp_gd_scheduler_patience: int,
     ):
         target_device = layer.weight.device
         target_dtype = layer.weight.dtype
@@ -159,26 +155,22 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
             f_h = nn.Parameter(f_kh.clone())
             f_w = nn.Parameter(f_kw.clone())
         else:
-            # Fixed scale for random init; Adam adapts. Do not tie to W_opt std here —
-            # combined with Frobenius-normalized targets, absolute MSE is a poor proxy
-            # for relative reconstruction quality.
-            init_scale = 0.05
-            f_out = nn.Parameter(torch.randn(out_ch, rank, device=work_dev) * init_scale)
-            f_in = nn.Parameter(torch.randn(in_ch, rank, device=work_dev) * init_scale)
-            f_h = nn.Parameter(torch.randn(kh, rank, device=work_dev) * init_scale)
-            f_w = nn.Parameter(torch.randn(kw, rank, device=work_dev) * init_scale)
+            # Scale random factors so rank-1 outer products are not ~1e-6 at step 0:
+            # entries of W_hat scale roughly as product of four factor scales; match
+            # std(W_opt) with init_std ≈ target_std^(1/4) / rank^(1/8)-style scaling.
+            target_std = float(W_opt.std().clamp_min(1e-8))
+            init_std = (target_std / (rank ** 0.5)) ** 0.25
+            f_out = nn.Parameter(torch.randn(out_ch, rank, device=work_dev) * init_std)
+            f_in = nn.Parameter(torch.randn(in_ch, rank, device=work_dev) * init_std)
+            f_h = nn.Parameter(torch.randn(kh, rank, device=work_dev) * init_std)
+            f_w = nn.Parameter(torch.randn(kw, rank, device=work_dev) * init_std)
 
         clip = cp_gd_grad_clip if cp_gd_grad_clip > 0 else 10.0
 
         params = [f_out, f_in, f_h, f_w]
         opt = torch.optim.Adam(params, lr=cp_gd_lr)
-        sched_patience = max(20, min(cp_gd_scheduler_patience, max(cp_gd_steps // 4, 50)))
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            opt,
-            mode="min",
-            factor=0.5,
-            patience=sched_patience,
-            min_lr=cp_gd_lr * 1e-4,
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            opt, T_max=max(cp_gd_steps, 1), eta_min=1e-5
         )
 
         t_start = time.perf_counter()
@@ -199,7 +191,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
             loss.backward()
             torch.nn.utils.clip_grad_norm_(params, clip)
             opt.step()
-            scheduler.step(float(loss.detach()))
+            scheduler.step()
 
         with torch.no_grad():
             W_hat = torch.einsum("or,ir,hr,wr->oihw", f_out, f_in, f_h, f_w)
@@ -254,7 +246,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
 
         self.compressed_ops = nn.Sequential(layer1, layer2, layer3, layer4)
 
-        del W, W_opt, W_hat, opt
+        del W, W_opt, W_hat, opt, scheduler
         gc.collect()
         if target_device.type == "cuda":
             torch.cuda.empty_cache()

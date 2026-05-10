@@ -260,9 +260,6 @@ def main():
             compress_kw["cp_gd_lr"] = method_params["cp_gd_lr"]
             compress_kw["cp_gd_on_cpu"] = method_params["cp_gd_on_cpu"]
             compress_kw["cp_gd_init"] = method_params["cp_gd_init"]
-            compress_kw["cp_gd_scheduler_patience"] = method_params[
-                "cp_gd_scheduler_patience"
-            ]
         # Deep-copy baseline weights into a fresh model (CPU-side tensors).
         current_model = copy.deepcopy(base_model)
         # Optional: run CP factorization directly on GPU when configured.
