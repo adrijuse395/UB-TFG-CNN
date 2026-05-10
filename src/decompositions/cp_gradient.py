@@ -1,4 +1,3 @@
-import math
 import time
 import gc
 import torch
@@ -41,7 +40,6 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
                 ),
                 cp_gd_init=str(kwargs.get("cp_gd_init", "svd")).lower(),
                 cp_gd_grad_clip=float(kwargs.get("cp_gd_grad_clip", 0.0)),
-                cp_gd_tol=float(kwargs.get("cp_gd_tol", 1e-4)),
                 cp_gd_scheduler_patience=int(
                     kwargs.get("cp_gd_scheduler_patience", 200)
                 ),
@@ -136,7 +134,6 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
         cp_abort_if_mem_available_mb_below: int,
         cp_gd_init: str,
         cp_gd_grad_clip: float,
-        cp_gd_tol: float,
         cp_gd_scheduler_patience: int,
     ):
         target_device = layer.weight.device
@@ -162,9 +159,10 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
             f_h = nn.Parameter(f_kh.clone())
             f_w = nn.Parameter(f_kw.clone())
         else:
-            # Scale so the rank-1 sum does not start ~0 (four tiny factors) nor huge.
-            target_std = float(W_opt.std().clamp_min(1e-8))
-            init_scale = (target_std / math.sqrt(float(rank))) ** 0.25
+            # Fixed scale for random init; Adam adapts. Do not tie to W_opt std here —
+            # combined with Frobenius-normalized targets, absolute MSE is a poor proxy
+            # for relative reconstruction quality.
+            init_scale = 0.05
             f_out = nn.Parameter(torch.randn(out_ch, rank, device=work_dev) * init_scale)
             f_in = nn.Parameter(torch.randn(in_ch, rank, device=work_dev) * init_scale)
             f_h = nn.Parameter(torch.randn(kh, rank, device=work_dev) * init_scale)
@@ -202,13 +200,6 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
             torch.nn.utils.clip_grad_norm_(params, clip)
             opt.step()
             scheduler.step(float(loss.detach()))
-
-            if loss.item() < cp_gd_tol:
-                print(
-                    f"    [CP_GD] early stop at step {step} "
-                    f"(MSE={loss.item():.6e} < tol={cp_gd_tol:g})"
-                )
-                break
 
         with torch.no_grad():
             W_hat = torch.einsum("or,ir,hr,wr->oihw", f_out, f_in, f_h, f_w)
