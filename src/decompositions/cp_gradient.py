@@ -38,7 +38,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
                 cp_abort_if_mem_available_mb_below=int(
                     kwargs.get("cp_abort_if_mem_available_mb_below", 800)
                 ),
-                cp_gd_init=str(kwargs.get("cp_gd_init", "svd")).lower(),
+                cp_gd_init=str(kwargs.get("cp_gd_init", "random")).lower(),
                 cp_gd_grad_clip=float(kwargs.get("cp_gd_grad_clip", 0.0)),
                 cp_gd_scheduler_patience=int(
                     kwargs.get("cp_gd_scheduler_patience", 200)
@@ -130,11 +130,15 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
         f_w: nn.Parameter,
         W_opt: torch.Tensor,
     ) -> None:
-        """Absorb scalar into f_out so ||Σ_r f_out f_in f_h f_w||_F matches ||W_opt||_F."""
+        """Distribute scalar equally to avoid factor-scale degeneration."""
         with torch.no_grad():
             W_hat0 = torch.einsum("or,ir,hr,wr->oihw", f_out, f_in, f_h, f_w)
             scale = W_opt.norm() / W_hat0.norm().clamp_min(1e-12)
-            f_out.mul_(scale)
+            scale_per_factor = scale ** 0.25
+            f_out.mul_(scale_per_factor)
+            f_in.mul_(scale_per_factor)
+            f_h.mul_(scale_per_factor)
+            f_w.mul_(scale_per_factor)
 
     def _compress_conv2d(
         self,
@@ -185,7 +189,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
         clip = cp_gd_grad_clip if cp_gd_grad_clip > 0 else 10.0
 
         params = [f_out, f_in, f_h, f_w]
-        opt = torch.optim.Adam(params, lr=cp_gd_lr, weight_decay=1e-5)
+        opt = torch.optim.Adam(params, lr=cp_gd_lr)
         sched_patience = max(1, cp_gd_steps // 10)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             opt,
