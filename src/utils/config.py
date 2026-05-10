@@ -26,6 +26,7 @@ DEFAULT_METHOD_PARAMS: Dict[str, Dict[str, Any]] = {
         "cp_gd_steps": 3000,
         "cp_gd_lr": 0.02,
         "cp_gd_on_cpu": True,
+        "cp_gd_init": "svd",
     },
 }
 
@@ -53,6 +54,9 @@ class ConfigParser:
             p["cp_gd_steps"] = int(p.get("cp_gd_steps", 3000))
             p["cp_gd_lr"] = float(p.get("cp_gd_lr", 0.02))
             p["cp_gd_on_cpu"] = bool(p.get("cp_gd_on_cpu", True))
+            p["cp_gd_init"] = str(p.get("cp_gd_init", "svd")).strip().lower()
+            if p["cp_gd_init"] not in {"svd", "random"}:
+                p["cp_gd_init"] = "svd"
         return p
 
     @staticmethod

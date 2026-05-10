@@ -35,7 +35,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
                 cp_abort_if_mem_available_mb_below=int(
                     kwargs.get("cp_abort_if_mem_available_mb_below", 800)
                 ),
-                cp_gd_init=str(kwargs.get("cp_gd_init", "random")).lower(),
+                cp_gd_init=str(kwargs.get("cp_gd_init", "svd")).lower(),
                 cp_gd_grad_clip=float(kwargs.get("cp_gd_grad_clip", 0.0)),
             )
         elif isinstance(layer, nn.Linear):

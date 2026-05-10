@@ -17,9 +17,10 @@
     },
     "method_defaults": {
         "CP_GD": {
-            "cp_gd_steps": 800,
-            "cp_gd_lr": 0.03,
-            "cp_gd_on_cpu": false
+            "cp_gd_steps": 3000,
+            "cp_gd_lr": 0.02,
+            "cp_gd_on_cpu": false,
+            "cp_gd_init": "svd"
         }
     },
     "experiments": [
