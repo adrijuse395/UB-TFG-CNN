@@ -84,7 +84,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
         out_ch = int(layer.out_channels)
         kh = int(layer.kernel_size[0])
         kw = int(layer.kernel_size[1])
-        rank = max(1, min(int(rank), in_ch, out_ch))
+        rank = max(1, int(rank))
         denom = max(1, in_ch + out_ch + kh + kw)
         max_rank_compression = max(1, int((in_ch * out_ch * kh * kw) / denom))
         if rank > max_rank_compression:
@@ -173,11 +173,8 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
             f_h = nn.Parameter(f_kh.clone())
             f_w = nn.Parameter(f_kw.clone())
         else:
-            # Scale random factors so rank-1 outer products are not ~1e-6 at step 0:
-            # entries of W_hat scale roughly as product of four factor scales; match
-            # std(W_opt) with init_std ≈ target_std^(1/4) / rank^(1/8)-style scaling.
-            target_std = float(W_opt.std().clamp_min(1e-8))
-            init_std = (target_std / (rank ** 0.5)) ** 0.25
+            target_var = W_opt.var().clamp_min(1e-12)
+            init_std = float((target_var / rank).pow(0.25))
             f_out = nn.Parameter(torch.randn(out_ch, rank, device=work_dev) * init_std)
             f_in = nn.Parameter(torch.randn(in_ch, rank, device=work_dev) * init_std)
             f_h = nn.Parameter(torch.randn(kh, rank, device=work_dev) * init_std)
@@ -188,16 +185,14 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
         clip = cp_gd_grad_clip if cp_gd_grad_clip > 0 else 10.0
 
         params = [f_out, f_in, f_h, f_w]
-        opt = torch.optim.Adam(params, lr=cp_gd_lr)
-        sched_patience = max(
-            20, min(cp_gd_scheduler_patience, max(cp_gd_steps // 4, 50))
-        )
+        opt = torch.optim.Adam(params, lr=cp_gd_lr, weight_decay=1e-5)
+        sched_patience = max(1, cp_gd_steps // 10)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             opt,
             mode="min",
             factor=0.5,
             patience=sched_patience,
-            min_lr=1e-5,
+            min_lr=1e-6,
         )
 
         t_start = time.perf_counter()
@@ -214,9 +209,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
 
             opt.zero_grad(set_to_none=True)
             W_hat = torch.einsum("or,ir,hr,wr->oihw", f_out, f_in, f_h, f_w)
-            # Optimize Frobenius residual directly to avoid tiny gradients from
-            # mean-reduction over very large tensors.
-            loss = (W_hat - W_opt).norm()
+            loss = F.mse_loss(W_hat, W_opt)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(params, clip)
             opt.step()
