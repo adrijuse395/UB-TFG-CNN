@@ -214,7 +214,9 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
 
             opt.zero_grad(set_to_none=True)
             W_hat = torch.einsum("or,ir,hr,wr->oihw", f_out, f_in, f_h, f_w)
-            loss = F.mse_loss(W_hat, W_opt)
+            # Optimize Frobenius residual directly to avoid tiny gradients from
+            # mean-reduction over very large tensors.
+            loss = (W_hat - W_opt).norm()
             loss.backward()
             torch.nn.utils.clip_grad_norm_(params, clip)
             opt.step()
