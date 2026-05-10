@@ -1,3 +1,4 @@
+import math
 import time
 import gc
 import torch
@@ -12,6 +13,9 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
     """
     CP-style factorization of Conv2d weights by minimizing Frobenius MSE with Adam.
     Avoids TensorLy parafac / ALS (no Khatri–Rao / MTTKRP spikes).
+
+    Reconstruction: W_hat[o,i,h,w] = sum_r f_out[o,r]*f_in[i,r]*f_h[h,r]*f_w[w,r]
+    (weights λ_r are absorbed into factors — equivalent parametrization).
 
     Same stacked Conv2d layout as CPDecomposedLayer after factors are fitted.
     Linear layers use truncated SVD (same as standard CP path).
@@ -29,7 +33,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
                 layer,
                 int(rank),
                 cp_gd_steps=int(kwargs.get("cp_gd_steps", 3000)),
-                cp_gd_lr=float(kwargs.get("cp_gd_lr", 0.02)),
+                cp_gd_lr=float(kwargs.get("cp_gd_lr", 0.05)),
                 cp_gd_on_cpu=bool(kwargs.get("cp_gd_on_cpu", True)),
                 cp_gd_timeout_s=float(kwargs.get("cp_gd_timeout_s", 180.0)),
                 cp_abort_if_mem_available_mb_below=int(
@@ -37,6 +41,10 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
                 ),
                 cp_gd_init=str(kwargs.get("cp_gd_init", "svd")).lower(),
                 cp_gd_grad_clip=float(kwargs.get("cp_gd_grad_clip", 0.0)),
+                cp_gd_tol=float(kwargs.get("cp_gd_tol", 1e-4)),
+                cp_gd_scheduler_patience=int(
+                    kwargs.get("cp_gd_scheduler_patience", 200)
+                ),
             )
         elif isinstance(layer, nn.Linear):
             self._compress_linear(layer, int(rank))
@@ -90,10 +98,9 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
         return rank
 
     def _init_factors_svd_modes(self, W: torch.Tensor, rank: int):
-        """Cheap per-mode left singular vectors (not a true CP init, but stable)."""
+        """Per-mode left singular vectors on normalized W (cheap CP warm-start)."""
         out_ch, in_ch, kh, kw = W.shape
         dev = W.device
-        f_out = f_in = f_h = f_w = None
 
         m0 = W.reshape(out_ch, -1)
         U, _, _ = torch.linalg.svd(m0, full_matrices=False)
@@ -115,8 +122,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
         n3 = min(U.shape[1], rank)
         f_w = self._expand_factor_cols(U[:, :n3], rank).to(dev)
 
-        lam = torch.ones(rank, device=dev, dtype=W.dtype) * W.abs().mean().clamp_min(1e-8)
-        return f_out, f_in, f_h, f_w, lam
+        return f_out, f_in, f_h, f_w
 
     def _compress_conv2d(
         self,
@@ -130,6 +136,8 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
         cp_abort_if_mem_available_mb_below: int,
         cp_gd_init: str,
         cp_gd_grad_clip: float,
+        cp_gd_tol: float,
+        cp_gd_scheduler_patience: int,
     ):
         target_device = layer.weight.device
         target_dtype = layer.weight.dtype
@@ -143,25 +151,38 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
         w_norm = W.norm().clamp_min(1e-12)
         W_opt = W / w_norm
 
+        out_ch, in_ch, kh, kw = int(layer.out_channels), int(layer.in_channels), int(
+            layer.kernel_size[0]
+        ), int(layer.kernel_size[1])
+
         if cp_gd_init == "svd":
-            f_o, f_i, f_kh, f_kw, lam0 = self._init_factors_svd_modes(W_opt, rank)
+            f_o, f_i, f_kh, f_kw = self._init_factors_svd_modes(W_opt, rank)
             f_out = nn.Parameter(f_o.clone())
             f_in = nn.Parameter(f_i.clone())
             f_h = nn.Parameter(f_kh.clone())
             f_w = nn.Parameter(f_kw.clone())
-            lam = nn.Parameter(lam0.clone())
         else:
-            scale = float(W_opt.std().clamp_min(1e-6)) / (rank ** 0.25)
-            f_out = nn.Parameter(torch.randn(layer.out_channels, rank, device=work_dev) * scale)
-            f_in = nn.Parameter(torch.randn(layer.in_channels, rank, device=work_dev) * scale)
-            kh, kw = int(layer.kernel_size[0]), int(layer.kernel_size[1])
-            f_h = nn.Parameter(torch.randn(kh, rank, device=work_dev) * scale)
-            f_w = nn.Parameter(torch.randn(kw, rank, device=work_dev) * scale)
-            lam = nn.Parameter(torch.ones(rank, device=work_dev))
+            # Scale so the rank-1 sum does not start ~0 (four tiny factors) nor huge.
+            target_std = float(W_opt.std().clamp_min(1e-8))
+            init_scale = (target_std / math.sqrt(float(rank))) ** 0.25
+            f_out = nn.Parameter(torch.randn(out_ch, rank, device=work_dev) * init_scale)
+            f_in = nn.Parameter(torch.randn(in_ch, rank, device=work_dev) * init_scale)
+            f_h = nn.Parameter(torch.randn(kh, rank, device=work_dev) * init_scale)
+            f_w = nn.Parameter(torch.randn(kw, rank, device=work_dev) * init_scale)
 
         clip = cp_gd_grad_clip if cp_gd_grad_clip > 0 else 10.0
 
-        opt = torch.optim.Adam([f_out, f_in, f_h, f_w, lam], lr=cp_gd_lr)
+        params = [f_out, f_in, f_h, f_w]
+        opt = torch.optim.Adam(params, lr=cp_gd_lr)
+        sched_patience = max(20, min(cp_gd_scheduler_patience, max(cp_gd_steps // 4, 50)))
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            opt,
+            mode="min",
+            factor=0.5,
+            patience=sched_patience,
+            min_lr=cp_gd_lr * 1e-4,
+        )
+
         t_start = time.perf_counter()
 
         for step in range(cp_gd_steps):
@@ -175,24 +196,30 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
                 )
 
             opt.zero_grad(set_to_none=True)
-            W_hat = torch.einsum("or,ir,hr,wr,r->oihw", f_out, f_in, f_h, f_w, lam)
+            W_hat = torch.einsum("or,ir,hr,wr->oihw", f_out, f_in, f_h, f_w)
             loss = F.mse_loss(W_hat, W_opt)
             loss.backward()
-            torch.nn.utils.clip_grad_norm_([f_out, f_in, f_h, f_w, lam], clip)
+            torch.nn.utils.clip_grad_norm_(params, clip)
             opt.step()
+            scheduler.step(float(loss.detach()))
+
+            if loss.item() < cp_gd_tol:
+                print(
+                    f"    [CP_GD] early stop at step {step} "
+                    f"(MSE={loss.item():.6e} < tol={cp_gd_tol:g})"
+                )
+                break
 
         with torch.no_grad():
-            lam_scaled = lam * w_norm
-            W_hat = torch.einsum("or,ir,hr,wr,r->oihw", f_out, f_in, f_h, f_w, lam_scaled)
-            rel = (W_hat - W).norm() / W.norm().clamp_min(1e-12)
+            W_hat = torch.einsum("or,ir,hr,wr->oihw", f_out, f_in, f_h, f_w)
+            rel = (W_hat - W_opt).norm() / W_opt.norm().clamp_min(1e-12)
             print(f"    [CP_GD] relative Frobenius error ~ {float(rel):.4e}")
 
-        cw = (lam * w_norm).detach()
-        f_o = f_out.detach().to(device=target_device, dtype=target_dtype)
+        # Fold global Frobenius scale into output-side factor (linear in f_out).
+        f_o = (f_out.detach() * w_norm).to(device=target_device, dtype=target_dtype)
         f_i = f_in.detach().to(device=target_device, dtype=target_dtype)
         f_hi = f_h.detach().to(device=target_device, dtype=target_dtype)
         f_wi = f_w.detach().to(device=target_device, dtype=target_dtype)
-        cw = cw.to(device=target_device, dtype=target_dtype)
 
         layer1 = nn.Conv2d(
             layer.in_channels, rank, kernel_size=1, stride=1, padding=0, bias=False
@@ -229,8 +256,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
             padding=0,
             bias=layer.bias is not None,
         )
-        f_out_weighted = f_o * cw.unsqueeze(0)
-        layer4.weight.data = f_out_weighted.unsqueeze(-1).unsqueeze(-1)
+        layer4.weight.data = f_o.unsqueeze(-1).unsqueeze(-1)
 
         if layer.bias is not None:
             layer4.bias.data = layer.bias.data
