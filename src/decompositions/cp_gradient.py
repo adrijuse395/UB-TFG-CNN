@@ -140,22 +140,26 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
 
         work_dev = torch.device("cpu") if cp_gd_on_cpu else target_device
         W = layer.weight.data.detach().to(device=work_dev, dtype=torch.float32).contiguous()
+        w_norm = W.norm().clamp_min(1e-12)
+        W_opt = W / w_norm
 
         if cp_gd_init == "svd":
-            f_o, f_i, f_kh, f_kw, lam0 = self._init_factors_svd_modes(W, rank)
+            f_o, f_i, f_kh, f_kw, lam0 = self._init_factors_svd_modes(W_opt, rank)
             f_out = nn.Parameter(f_o.clone())
             f_in = nn.Parameter(f_i.clone())
             f_h = nn.Parameter(f_kh.clone())
             f_w = nn.Parameter(f_kw.clone())
             lam = nn.Parameter(lam0.clone())
         else:
-            scale = float(W.std().clamp_min(1e-6)) / (rank ** 0.25)
+            scale = float(W_opt.std().clamp_min(1e-6)) / (rank ** 0.25)
             f_out = nn.Parameter(torch.randn(layer.out_channels, rank, device=work_dev) * scale)
             f_in = nn.Parameter(torch.randn(layer.in_channels, rank, device=work_dev) * scale)
             kh, kw = int(layer.kernel_size[0]), int(layer.kernel_size[1])
             f_h = nn.Parameter(torch.randn(kh, rank, device=work_dev) * scale)
             f_w = nn.Parameter(torch.randn(kw, rank, device=work_dev) * scale)
             lam = nn.Parameter(torch.ones(rank, device=work_dev))
+
+        clip = cp_gd_grad_clip if cp_gd_grad_clip > 0 else 10.0
 
         opt = torch.optim.Adam([f_out, f_in, f_h, f_w, lam], lr=cp_gd_lr)
         t_start = time.perf_counter()
@@ -172,20 +176,18 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
 
             opt.zero_grad(set_to_none=True)
             W_hat = torch.einsum("or,ir,hr,wr,r->oihw", f_out, f_in, f_h, f_w, lam)
-            loss = F.mse_loss(W_hat, W)
+            loss = F.mse_loss(W_hat, W_opt)
             loss.backward()
-            if cp_gd_grad_clip > 0:
-                torch.nn.utils.clip_grad_norm_(
-                    [f_out, f_in, f_h, f_w, lam], cp_gd_grad_clip
-                )
+            torch.nn.utils.clip_grad_norm_([f_out, f_in, f_h, f_w, lam], clip)
             opt.step()
 
         with torch.no_grad():
-            W_hat = torch.einsum("or,ir,hr,wr,r->oihw", f_out, f_in, f_h, f_w, lam)
+            lam_scaled = lam * w_norm
+            W_hat = torch.einsum("or,ir,hr,wr,r->oihw", f_out, f_in, f_h, f_w, lam_scaled)
             rel = (W_hat - W).norm() / W.norm().clamp_min(1e-12)
             print(f"    [CP_GD] relative Frobenius error ~ {float(rel):.4e}")
 
-        cw = lam.detach()
+        cw = (lam * w_norm).detach()
         f_o = f_out.detach().to(device=target_device, dtype=target_dtype)
         f_i = f_in.detach().to(device=target_device, dtype=target_dtype)
         f_hi = f_h.detach().to(device=target_device, dtype=target_dtype)
@@ -235,7 +237,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
 
         self.compressed_ops = nn.Sequential(layer1, layer2, layer3, layer4)
 
-        del W, W_hat, opt
+        del W, W_opt, W_hat, opt
         gc.collect()
         if target_device.type == "cuda":
             torch.cuda.empty_cache()
