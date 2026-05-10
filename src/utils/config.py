@@ -27,6 +27,7 @@ DEFAULT_METHOD_PARAMS: Dict[str, Dict[str, Any]] = {
         "cp_gd_lr": 0.01,
         "cp_gd_on_cpu": True,
         "cp_gd_init": "svd",
+        "cp_gd_scheduler_patience": 200,
     },
 }
 
@@ -57,6 +58,7 @@ class ConfigParser:
             p["cp_gd_init"] = str(p.get("cp_gd_init", "svd")).strip().lower()
             if p["cp_gd_init"] not in {"svd", "random"}:
                 p["cp_gd_init"] = "svd"
+            p["cp_gd_scheduler_patience"] = int(p.get("cp_gd_scheduler_patience", 200))
         return p
 
     @staticmethod
