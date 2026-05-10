@@ -54,6 +54,25 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
             pass
         return 10**9
 
+    @staticmethod
+    def _expand_factor_cols(mat: torch.Tensor, rank: int) -> torch.Tensor:
+        """
+        Ensure factor second dimension equals `rank`. Mode-n SVD may yield fewer
+        than `rank` columns when the unfolding has a small leading dimension
+        (e.g. kh=3 → at most 3 singular vectors for the height mode).
+        Tile columns as a cheap fix so einsum shapes stay consistent.
+        """
+        if mat.shape[-1] == rank:
+            return mat
+        if mat.shape[-1] > rank:
+            return mat[..., :rank]
+        r0 = mat.shape[-1]
+        if r0 == 0:
+            raise RuntimeError("CP_GD: empty factor column dimension.")
+        repeats = (rank + r0 - 1) // r0
+        tiled = mat.repeat(1, repeats)[:, :rank]
+        return tiled
+
     def _rank_caps_conv2d(self, layer: nn.Conv2d, rank: int) -> int:
         in_ch = int(layer.in_channels)
         out_ch = int(layer.out_channels)
@@ -78,19 +97,23 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
 
         m0 = W.reshape(out_ch, -1)
         U, _, _ = torch.linalg.svd(m0, full_matrices=False)
-        f_out = U[:, :rank].to(dev)
+        n0 = min(U.shape[1], rank)
+        f_out = self._expand_factor_cols(U[:, :n0], rank).to(dev)
 
         m1 = W.permute(1, 0, 2, 3).reshape(in_ch, -1)
         U, _, _ = torch.linalg.svd(m1, full_matrices=False)
-        f_in = U[:, :rank].to(dev)
+        n1 = min(U.shape[1], rank)
+        f_in = self._expand_factor_cols(U[:, :n1], rank).to(dev)
 
         m2 = W.permute(2, 0, 1, 3).reshape(kh, -1)
         U, _, _ = torch.linalg.svd(m2, full_matrices=False)
-        f_h = U[:, :rank].to(dev)
+        n2 = min(U.shape[1], rank)
+        f_h = self._expand_factor_cols(U[:, :n2], rank).to(dev)
 
         m3 = W.permute(3, 0, 1, 2).reshape(kw, -1)
         U, _, _ = torch.linalg.svd(m3, full_matrices=False)
-        f_w = U[:, :rank].to(dev)
+        n3 = min(U.shape[1], rank)
+        f_w = self._expand_factor_cols(U[:, :n3], rank).to(dev)
 
         lam = torch.ones(rank, device=dev, dtype=W.dtype) * W.abs().mean().clamp_min(1e-8)
         return f_out, f_in, f_h, f_w, lam
