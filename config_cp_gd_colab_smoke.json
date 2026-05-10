@@ -1,30 +1,31 @@
 {
-    "run_id": "run_20260509_092559",
     "global_settings": {
         "dataset": "cifar10",
         "model": "vgg11_bn",
         "batch_size": 128,
         "use_gpu": true,
         "num_classes": 10,
-        "pretrained": true
+        "pretrained": true,
+        "execution": {
+            "gpu": true,
+            "on": "gpu"
+        }
     },
     "resource_limits": {
         "max_rank": 64,
-        "cp_parafac_n_iter_max": 8,
-        "cp_parafac_tol": 0.0001,
-        "cp_parafac_on_cpu": false,
-        "cp_memory_efficient_mttkrp": false,
-        "cp_layer_timeout_s": 8.0,
-        "cp_abort_if_mem_available_mb_below": 1200,
-        "cp_init": "svd",
-        "cp_normalize_factors": true,
-        "cpu_num_threads": 2,
-        "cpu_num_interop_threads": 1
+        "max_batch_size": 256
+    },
+    "method_defaults": {
+        "CP_GD": {
+            "cp_gd_steps": 800,
+            "cp_gd_lr": 0.03,
+            "cp_gd_on_cpu": false
+        }
     },
     "experiments": [
         {
-            "name": "CP colab smoke rank 04 | no_ft",
-            "method": "CP",
+            "name": "CP_GD smoke rank 008 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -35,12 +36,12 @@
                 "features.22",
                 "features.25"
             ],
-            "rank": 4,
+            "rank": 8,
             "fine_tuning": false
         },
         {
-            "name": "CP colab smoke rank 04 | ft",
-            "method": "CP",
+            "name": "CP_GD smoke rank 008 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -51,7 +52,7 @@
                 "features.22",
                 "features.25"
             ],
-            "rank": 4,
+            "rank": 8,
             "fine_tuning": true,
             "epochs": 2,
             "learning_rate": 0.0001,
@@ -59,8 +60,8 @@
             "patience": 1,
             "min_improvement": 0.5,
             "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 20,
-            "max_val_batches_per_epoch": 10
+            "max_train_batches_per_epoch": 30,
+            "max_val_batches_per_epoch": 15
         }
     ]
 }

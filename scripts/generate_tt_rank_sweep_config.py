@@ -63,15 +63,7 @@ def build_config(method: str = "TT") -> Dict[str, Any]:
         },
         "resource_limits": {
             "max_rank": 64,
-            "cp_parafac_n_iter_max": 25,
-            "cp_parafac_tol": 0.0001,
-            "cp_parafac_on_cpu": True,
-            "cp_memory_efficient_mttkrp": True,
-            "cp_layer_timeout_s": 12.0,
-            "cp_abort_if_mem_available_mb_below": 1200,
-            "cp_init": "random",
-            "cpu_num_threads": 2,
-            "cpu_num_interop_threads": 1,
+            "max_batch_size": 256,
         },
         "experiments": experiments,
     }

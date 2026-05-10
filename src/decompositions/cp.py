@@ -26,7 +26,6 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         parafac_n_iter_max = int(kwargs.get("parafac_n_iter_max", 60))
         parafac_tol = float(kwargs.get("parafac_tol", 1e-5))
         cp_parafac_on_cpu = bool(kwargs.get("cp_parafac_on_cpu", True))
-        cp_memory_efficient_mttkrp = bool(kwargs.get("cp_memory_efficient_mttkrp", True))
         cp_layer_timeout_s = float(kwargs.get("cp_layer_timeout_s", 20.0))
         cp_abort_if_mem_available_mb_below = int(
             kwargs.get("cp_abort_if_mem_available_mb_below", 800)
@@ -42,7 +41,6 @@ class CPDecomposedLayer(BaseDecomposedLayer):
                 parafac_n_iter_max=parafac_n_iter_max,
                 parafac_tol=parafac_tol,
                 cp_parafac_on_cpu=cp_parafac_on_cpu,
-                cp_memory_efficient_mttkrp=cp_memory_efficient_mttkrp,
                 cp_layer_timeout_s=cp_layer_timeout_s,
                 cp_abort_if_mem_available_mb_below=cp_abort_if_mem_available_mb_below,
                 cp_init=cp_init,
@@ -61,7 +59,6 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         parafac_n_iter_max: int,
         parafac_tol: float,
         cp_parafac_on_cpu: bool,
-        cp_memory_efficient_mttkrp: bool,
         cp_layer_timeout_s: float,
         cp_abort_if_mem_available_mb_below: int,
         cp_init: str,
@@ -69,9 +66,6 @@ class CPDecomposedLayer(BaseDecomposedLayer):
     ):
         target_device = layer.weight.device
         target_dtype = layer.weight.dtype
-
-        # Keep CP path conservative: avoid experimental TensorLy backend hooks here.
-        # cp_memory_efficient_mttkrp is intentionally ignored to reduce crash risk.
 
         if cp_parafac_on_cpu:
             W = layer.weight.data.detach().cpu().float().contiguous()

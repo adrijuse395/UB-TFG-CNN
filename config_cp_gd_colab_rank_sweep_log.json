@@ -5,25 +5,27 @@
         "batch_size": 128,
         "use_gpu": true,
         "num_classes": 10,
-        "pretrained": true
+        "pretrained": true,
+        "execution": {
+            "gpu": true,
+            "on": "gpu"
+        }
     },
     "resource_limits": {
         "max_rank": 400,
-        "cp_parafac_n_iter_max": 25,
-        "cp_parafac_tol": 0.0001,
-        "cp_parafac_on_cpu": false,
-        "cp_memory_efficient_mttkrp": false,
-        "cp_layer_timeout_s": 12.0,
-        "cp_abort_if_mem_available_mb_below": 1200,
-        "cp_init": "svd",
-        "cp_normalize_factors": true,
-        "cpu_num_threads": 2,
-        "cpu_num_interop_threads": 1
+        "max_batch_size": 256
+    },
+    "method_defaults": {
+        "CP_GD": {
+            "cp_gd_steps": 3000,
+            "cp_gd_lr": 0.02,
+            "cp_gd_on_cpu": false
+        }
     },
     "experiments": [
         {
-            "name": "CP rank 002 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 002 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -38,8 +40,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 002 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 002 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -62,8 +64,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 004 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 004 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -78,8 +80,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 004 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 004 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -102,8 +104,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 006 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 006 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -118,8 +120,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 006 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 006 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -142,8 +144,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 008 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 008 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -158,8 +160,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 008 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 008 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -182,8 +184,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 010 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 010 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -198,8 +200,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 010 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 010 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -222,8 +224,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 012 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 012 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -238,8 +240,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 012 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 012 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -262,8 +264,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 014 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 014 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -278,8 +280,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 014 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 014 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -302,8 +304,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 016 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 016 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -318,8 +320,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 016 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 016 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -342,8 +344,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 018 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 018 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -358,8 +360,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 018 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 018 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -382,8 +384,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 020 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 020 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -398,8 +400,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 020 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 020 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -422,8 +424,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 024 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 024 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -438,8 +440,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 024 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 024 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -462,8 +464,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 028 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 028 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -478,8 +480,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 028 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 028 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -502,8 +504,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 032 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 032 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -518,8 +520,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 032 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 032 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -542,8 +544,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 036 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 036 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -558,8 +560,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 036 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 036 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -582,8 +584,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 040 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 040 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -598,8 +600,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 040 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 040 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -622,8 +624,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 044 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 044 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -638,8 +640,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 044 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 044 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -662,8 +664,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 048 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 048 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -678,8 +680,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 048 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 048 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -702,8 +704,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 052 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 052 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -718,8 +720,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 052 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 052 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -742,8 +744,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 058 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 058 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -758,8 +760,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 058 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 058 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -782,8 +784,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 064 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 064 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -798,8 +800,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 064 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 064 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -822,8 +824,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 072 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 072 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -838,8 +840,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 072 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 072 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -862,8 +864,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 082 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 082 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -878,8 +880,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 082 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 082 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -902,8 +904,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 094 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 094 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -918,8 +920,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 094 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 094 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -942,8 +944,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 107 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 107 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -958,8 +960,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 107 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 107 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -982,8 +984,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 122 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 122 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -998,8 +1000,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 122 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 122 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1022,8 +1024,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 139 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 139 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1038,8 +1040,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 139 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 139 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1062,8 +1064,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 159 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 159 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1078,8 +1080,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 159 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 159 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1102,8 +1104,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 181 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 181 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1118,8 +1120,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 181 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 181 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1142,8 +1144,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 207 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 207 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1158,8 +1160,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 207 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 207 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1182,8 +1184,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 236 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 236 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1198,8 +1200,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 236 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 236 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1222,8 +1224,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 269 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 269 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1238,8 +1240,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 269 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 269 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1262,8 +1264,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 307 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 307 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1278,8 +1280,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 307 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 307 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1302,8 +1304,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 351 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 351 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1318,8 +1320,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 351 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 351 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1342,8 +1344,8 @@
             "max_val_batches_per_epoch": 20
         },
         {
-            "name": "CP rank 400 | no_ft",
-            "method": "CP",
+            "name": "CP_GD rank 400 | no_ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",
@@ -1358,8 +1360,8 @@
             "fine_tuning": false
         },
         {
-            "name": "CP rank 400 | ft",
-            "method": "CP",
+            "name": "CP_GD rank 400 | ft",
+            "method": "CP_GD",
             "target_layers": [
                 "features.0",
                 "features.4",

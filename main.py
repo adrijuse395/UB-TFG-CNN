@@ -21,6 +21,7 @@ import torch
 
 from src.data.factory import DatasetFactory
 from src.decompositions.cp import CPDecomposedLayer
+from src.decompositions.cp_gradient import CPGradientDecomposedLayer
 from src.decompositions.replacer import ModelReplacer
 from src.decompositions.tt import TTDecomposedLayer
 from src.decompositions.tucker import TuckerDecomposedLayer
@@ -34,6 +35,7 @@ from src.utils.logger import RunLogger
 DECOMPOSITION_REGISTRY = {
     "Tucker": TuckerDecomposedLayer,
     "CP":     CPDecomposedLayer,
+    "CP_GD":  CPGradientDecomposedLayer,
     "TT":     TTDecomposedLayer,
 }
 
@@ -103,9 +105,7 @@ def main():
     # - preferred in current configs: top-level "resource_limits"
     # - legacy fallback: global_settings["resource_limits"]
     resource_limits_cfg = config.get("resource_limits", global_settings.get("resource_limits", {}))
-    resource_limits = ConfigParser.merge_resource_limits(
-        {**global_settings, "resource_limits": resource_limits_cfg}
-    )
+    resource_limits = ConfigParser.merge_resource_limits(resource_limits_cfg)
 
     # Execution selector (new):
     # global_settings.execution = {"gpu": true/false, "on": "cpu"|"gpu"}
@@ -123,26 +123,13 @@ def main():
     print(
         "[*] resource_limits:",
         f"max_rank={resource_limits['max_rank']}, "
-        f"max_target_layers={resource_limits['max_target_layers_per_experiment']}, "
         f"max_batch_size={resource_limits['max_batch_size']}, "
-        f"cp_parafac_n_iter_max={resource_limits['cp_parafac_n_iter_max']}, "
-        f"cp_parafac_on_cpu={resource_limits['cp_parafac_on_cpu']}, "
-        f"cp_normalize_factors={resource_limits['cp_normalize_factors']}, "
-        f"cp_layer_timeout_s={resource_limits['cp_layer_timeout_s']}, "
-        f"cp_mem_guard_mb={resource_limits['cp_abort_if_mem_available_mb_below']}, "
-        f"cp_init={resource_limits['cp_init']}",
+        "(method-specific params: method_defaults + experiment.method_params)",
     )
     print(
         "[*] execution:",
         f"requested_on={exec_on}, gpu_enabled={exec_gpu_enabled}, resolved_device={device}"
     )
-    torch.set_num_threads(max(1, resource_limits["cpu_num_threads"]))
-    try:
-        torch.set_num_interop_threads(max(1, resource_limits["cpu_num_interop_threads"]))
-    except RuntimeError:
-        # set_num_interop_threads can only be called once in some runtimes.
-        pass
-
     # ------------------------------------------------------------------ #
     # 2. Initialise run logger (creates directory + input_config.json)
     # ------------------------------------------------------------------ #
@@ -251,14 +238,6 @@ def main():
             else 0
         )
 
-        max_tl = resource_limits["max_target_layers_per_experiment"]
-        if len(target_layers) > max_tl:
-            print(
-                f"    [Error] {len(target_layers)} target_layers exceeds "
-                f"resource_limits.max_target_layers_per_experiment ({max_tl}). Skipping."
-            )
-            continue
-
         if not target_layers:
             print("    [Warning] No target_layers specified. Model unchanged.")
 
@@ -269,36 +248,38 @@ def main():
             )
         rank = rank_clamped
 
+        method_params = ConfigParser.resolve_method_params(
+            method=method,
+            config=config,
+            global_settings=global_settings,
+            experiment=exp,
+        )
         compress_kw = {"rank": rank}
-        if method in {"CP", "CP_ALS_LIGHT"}:
-            compress_kw["parafac_n_iter_max"] = resource_limits["cp_parafac_n_iter_max"]
-            compress_kw["parafac_tol"] = resource_limits["cp_parafac_tol"]
-            compress_kw["cp_parafac_on_cpu"] = resource_limits["cp_parafac_on_cpu"]
-            compress_kw["cp_memory_efficient_mttkrp"] = resource_limits[
-                "cp_memory_efficient_mttkrp"
-            ]
-            compress_kw["cp_layer_timeout_s"] = resource_limits["cp_layer_timeout_s"]
-            compress_kw["cp_abort_if_mem_available_mb_below"] = resource_limits[
-                "cp_abort_if_mem_available_mb_below"
-            ]
-            compress_kw["cp_init"] = resource_limits["cp_init"]
-            compress_kw["cp_normalize_factors"] = resource_limits["cp_normalize_factors"]
-        if method == "CP_HOSVD":
-            # Reuse same switch semantics: on_cpu=True keeps SVD work off GPU.
-            compress_kw["cp_hosvd_on_cpu"] = resource_limits["cp_parafac_on_cpu"]
-
+        if method == "CP_GD":
+            compress_kw["cp_gd_steps"] = method_params["cp_gd_steps"]
+            compress_kw["cp_gd_lr"] = method_params["cp_gd_lr"]
+            compress_kw["cp_gd_on_cpu"] = method_params["cp_gd_on_cpu"]
         # Deep-copy baseline weights into a fresh model (CPU-side tensors).
         current_model = copy.deepcopy(base_model)
         # Optional: run CP factorization directly on GPU when configured.
-        if method in {"CP", "CP_ALS_LIGHT"} and (not compress_kw.get("cp_parafac_on_cpu", True)):
+        cp_compress_on_gpu = False
+        if method == "CP":
+            cp_compress_on_gpu = not compress_kw.get("cp_parafac_on_cpu", True)
+        elif method == "CP_GD":
+            cp_compress_on_gpu = not compress_kw.get("cp_gd_on_cpu", True)
+
+        if cp_compress_on_gpu:
             if device.startswith("cuda") and torch.cuda.is_available():
                 current_model.to(device)
             else:
                 print(
-                    "    [Warning] CP requested on GPU but CUDA is unavailable; "
-                    "falling back to CPU factorization."
+                    "    [Warning] CP-style decomposition requested on GPU but CUDA "
+                    "is unavailable; falling back to CPU factorization."
                 )
-                compress_kw["cp_parafac_on_cpu"] = True
+                if method == "CP_GD":
+                    compress_kw["cp_gd_on_cpu"] = True
+                else:
+                    compress_kw["cp_parafac_on_cpu"] = True
 
         # Replace the target layers and time the operation
         t0 = time.perf_counter()
