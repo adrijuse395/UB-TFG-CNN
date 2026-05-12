@@ -1,6 +1,33 @@
 const PLOT_CONFIG = { responsive: true, displaylogo: false };
 const LIVE_REFRESH_MS = 8000;
 
+/** Plotly needs a real DOM node; string ids cause null.innerHTML inside Plotly when the div is missing. */
+function plotlyNewPlot(containerIdOrEl, traces, layout, cfg) {
+  const gd =
+    typeof containerIdOrEl === "string"
+      ? document.getElementById(containerIdOrEl)
+      : containerIdOrEl;
+  if (!gd || typeof Plotly === "undefined") return false;
+  try {
+    Plotly.newPlot(gd, traces, layout, cfg != null ? cfg : PLOT_CONFIG);
+    return true;
+  } catch (err) {
+    console.warn("Plotly.newPlot failed:", err);
+    return false;
+  }
+}
+
+function plotlyPurge(containerIdOrEl) {
+  const gd =
+    typeof containerIdOrEl === "string" ? document.getElementById(containerIdOrEl) : containerIdOrEl;
+  if (!gd || typeof Plotly === "undefined") return;
+  try {
+    Plotly.purge(gd);
+  } catch (_) {
+    /* ignore */
+  }
+}
+
 const AXIS_FIELDS = [
   { key: "rank_scalar", label: "Rank" },
   { key: "accuracy", label: "Accuracy (%)" },
@@ -23,6 +50,8 @@ const SERIES_OPTIONS = [
   { key: "method", label: "Method" },
   { key: "run_id", label: "Run" },
 ];
+
+const LS_NAMED_COMPARISON = "analyzer_named_comparison_v1";
 
 const fmt = (v, d = 2) =>
   v === null || v === undefined || Number.isNaN(v) ? "-" : Number(v).toFixed(d);
@@ -258,6 +287,28 @@ async function loadData() {
   }
 }
 
+function normalizePayload(raw) {
+  const rows = Array.isArray(raw?.rows) ? raw.rows : [];
+  const meta = raw?.meta && typeof raw.meta === "object" ? { ...raw.meta } : {};
+  const methodsU = uniq(rows.map((r) => r.method).filter((x) => x !== undefined && x !== ""));
+  const phasesU = uniq(rows.map((r) => r.phase).filter((x) => x !== undefined && x !== ""));
+  const runsU = uniq(rows.map((r) => r.run_id).filter((x) => x !== undefined && x !== ""));
+  meta.runs = Array.isArray(meta.runs) && meta.runs.length ? meta.runs : runsU;
+  meta.methods =
+    Array.isArray(meta.methods) && meta.methods.length ? meta.methods : methodsU;
+  meta.phases = Array.isArray(meta.phases) && meta.phases.length ? meta.phases : phasesU;
+  meta.row_count_by_run =
+    meta.row_count_by_run && typeof meta.row_count_by_run === "object" ? meta.row_count_by_run : {};
+  meta.rows = rows.length;
+  if (!meta.generated_at) meta.generated_at = new Date().toISOString();
+  if (meta.latest_run === undefined || meta.latest_run === null || meta.latest_run === "") {
+    meta.latest_run =
+      meta.runs.length ? [...meta.runs].sort().at(-1) : runsU.length ? [...runsU].sort().at(-1) : "";
+  }
+  if (!meta.source) meta.source = rows.length ? "dataset" : "empty";
+  return { rows, meta };
+}
+
 function pickDefaultRun(meta) {
   const runs = meta.runs || [];
   const latest = meta.latest_run || "";
@@ -276,6 +327,8 @@ function pickDefaultRun(meta) {
 }
 
 function setOptions(select, values, includeAll = true) {
+  if (!select) return;
+  const vals = Array.isArray(values) ? values : [];
   select.innerHTML = "";
   if (includeAll) {
     const o = document.createElement("option");
@@ -283,7 +336,7 @@ function setOptions(select, values, includeAll = true) {
     o.textContent = "All";
     select.appendChild(o);
   }
-  values.forEach((v) => {
+  vals.forEach((v) => {
     const o = document.createElement("option");
     o.value = v;
     o.textContent = v;
@@ -292,6 +345,7 @@ function setOptions(select, values, includeAll = true) {
 }
 
 function setAxisOptions(select) {
+  if (!select) return;
   select.innerHTML = "";
   AXIS_FIELDS.forEach((f) => {
     const o = document.createElement("option");
@@ -316,22 +370,88 @@ function initTabs() {
       tabs.forEach((t) => t.classList.toggle("active", t === tab));
       panels.forEach((p) => p.classList.toggle("active", p.id === `panel-${id}`));
       window.dispatchEvent(new Event("resize"));
+      requestAnimationFrame(() => {
+        if (typeof Plotly === "undefined") return;
+        const customChart = document.getElementById("customChart");
+        const cmpChart = document.getElementById("cmpChart");
+        if (customChart) Plotly.Plots.resize(customChart);
+        if (cmpChart) Plotly.Plots.resize(cmpChart);
+      });
     });
   });
 }
 
+function escapeHtml(s) {
+  const d = document.createElement("div");
+  d.textContent = s == null ? "" : String(s);
+  return d.innerHTML;
+}
+
+function safeSetHtml(el, html) {
+  if (el) el.innerHTML = html;
+}
+
+function formatRowOneLine(r) {
+  const rk =
+    r.rank_raw !== undefined && String(r.rank_raw).trim() !== ""
+      ? String(r.rank_raw)
+      : String(r.rank_scalar ?? "—");
+  const ft = r.fine_tuning_enabled ? "FT" : "no FT";
+  return `${r.run_id} · ${r.method} · ${r.experiment_name} · ${r.phase} · r=${rk} · ${ft}`;
+}
+
+function seriesLabel(row, key) {
+  if (key === "fine_tuning_enabled") return row.fine_tuning_enabled ? "Fine-tuned" : "No FT";
+  return String(row[key] ?? "-");
+}
+
+function loadNamedEntries() {
+  try {
+    const raw = localStorage.getItem(LS_NAMED_COMPARISON);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((e, i) => ({
+        uid:
+          e.uid ||
+          (typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `legacy_${i}_${Date.now()}`),
+        label: e.label != null ? String(e.label) : "Unnamed",
+        row: e.row,
+      }))
+      .filter((e) => e.row);
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveNamedEntries(entries) {
+  localStorage.setItem(LS_NAMED_COMPARISON, JSON.stringify(entries));
+}
+
+function rowFingerprint(r) {
+  return `${r.run_id}|${r.experiment_name}|${r.method}|${r.phase}|${r.rank_scalar}|${r.fine_tuning_enabled}`;
+}
+
 function initDashboard(payload) {
-  const DATA = payload.rows;
+  const DATA = Array.isArray(payload.rows) ? payload.rows : [];
+  const meta = payload.meta || {};
+  const DATA_ALL = withDerived(DATA, DATA);
+
   const metaLine = document.getElementById("dataMetaLine");
   if (metaLine) {
-    const gen = payload.meta.generated_at || "?";
-    const byRun = payload.meta.row_count_by_run || {};
-    const latest = payload.meta.latest_run || "";
-    const source = payload.meta.source === "live_csv" ? "live CSV" : "results.json";
+    const gen = meta.generated_at || "?";
+    const byRun = meta.row_count_by_run || {};
+    const latest = meta.latest_run || "";
+    const src = meta.source || "?";
+    const sourceLabel =
+      src === "live_csv" ? "live CSV" : src === "results_json" ? "results.json" : String(src);
     const counts = Object.entries(byRun)
       .map(([k, v]) => `${k}: ${v}`)
       .join(" · ");
-    metaLine.textContent = `Dataset (${source}): ${payload.meta.rows} rows · generated ${gen} · latest run: ${latest}${
+    metaLine.textContent = `Dataset (${sourceLabel}): ${DATA.length} rows · ${gen} · latest run: ${latest}${
       counts ? ` · ${counts}` : ""
     }`;
   }
@@ -345,6 +465,8 @@ function initDashboard(payload) {
   const metricSel = document.getElementById("metricSelect");
   const colorSel = document.getElementById("colorBySelect");
   const showBaselineToggle = document.getElementById("showBaselineToggle");
+  const kpiGridEl = document.getElementById("kpiGrid");
+  const tableBody = document.getElementById("tableBody");
 
   const chartX = document.getElementById("chartXField");
   const chartY = document.getElementById("chartYField");
@@ -353,31 +475,70 @@ function initDashboard(payload) {
   const chartTitleIn = document.getElementById("chartTitleInput");
   const chartXLabelIn = document.getElementById("chartXLabelInput");
   const chartYLabelIn = document.getElementById("chartYLabelInput");
+  const customChartEl = document.getElementById("customChart");
 
-  setOptions(runSel, payload.meta.runs);
-  runSel.value = pickDefaultRun(payload.meta);
-  setOptions(methodSel, payload.meta.methods);
-  setOptions(phaseSel, payload.meta.phases);
-  setOptions(metricSel, METRICS, false);
-  metricSel.value = "accuracy";
-  setOptions(colorSel, ["fine_tuning_enabled", "phase", "run_id"], false);
-  colorSel.value = "fine_tuning_enabled";
+  const filtersOk =
+    runSel &&
+    methodSel &&
+    phaseSel &&
+    expSel &&
+    showBaselineToggle &&
+    kpiGridEl &&
+    tableBody;
 
-  setAxisOptions(chartX);
-  setAxisOptions(chartY);
-  chartX.value = "rank_scalar";
-  chartY.value = "accuracy";
-  chartSeries.innerHTML = "";
-  SERIES_OPTIONS.forEach((s) => {
-    const o = document.createElement("option");
-    o.value = s.key;
-    o.textContent = s.label;
-    chartSeries.appendChild(o);
-  });
-  chartSeries.value = "fine_tuning_enabled";
+  const chartReady =
+    chartX &&
+    chartY &&
+    chartType &&
+    chartSeries &&
+    chartTitleIn &&
+    chartXLabelIn &&
+    chartYLabelIn &&
+    customChartEl;
+
+  if (!filtersOk) {
+    const err = document.getElementById("errorBox");
+    if (err) err.textContent = "Missing table/filter markup. Hard-refresh (Ctrl+Shift+R).";
+    return;
+  }
+
+  if (!chartReady) {
+    const err = document.getElementById("errorBox");
+    if (err) {
+      err.textContent = "Missing chart panel (customChart). Hard-refresh (Ctrl+Shift+R).";
+    }
+  }
+
+  setOptions(runSel, meta.runs || []);
+  runSel.value = pickDefaultRun(meta);
+  setOptions(methodSel, meta.methods || []);
+  setOptions(phaseSel, meta.phases || []);
+  if (metricSel) {
+    setOptions(metricSel, METRICS, false);
+    metricSel.value = "accuracy";
+  }
+  if (colorSel) {
+    setOptions(colorSel, ["fine_tuning_enabled", "phase", "run_id"], false);
+    colorSel.value = "fine_tuning_enabled";
+  }
+
+  if (chartReady) {
+    setAxisOptions(chartX);
+    setAxisOptions(chartY);
+    chartX.value = "rank_scalar";
+    chartY.value = "accuracy";
+    chartSeries.innerHTML = "";
+    SERIES_OPTIONS.forEach((s) => {
+      const o = document.createElement("option");
+      o.value = s.key;
+      o.textContent = s.label;
+      chartSeries.appendChild(o);
+    });
+    chartSeries.value = "fine_tuning_enabled";
+  }
 
   const baseFilter = () =>
-    DATA.filter(
+    DATA_ALL.filter(
       (r) =>
         (runSel.value === "__all__" || r.run_id === runSel.value) &&
         (methodSel.value === "__all__" || r.method === methodSel.value) &&
@@ -395,7 +556,7 @@ function initDashboard(payload) {
   const filtered = () =>
     withDerived(
       baseFilter().filter((r) => expSel.value === "__all__" || r.experiment_name === expSel.value),
-      DATA
+      DATA_ALL
     );
 
   const renderKpis = (rows) => {
@@ -408,35 +569,34 @@ function initDashboard(payload) {
       .sort((a, b) => b.accuracy - a.accuracy)[0];
     let scopeNote = "after filters";
     if (runSel.value !== "__all__") {
-      const total = (payload.meta.row_count_by_run || {})[runSel.value];
+      const total = (meta.row_count_by_run || {})[runSel.value];
       if (total !== undefined) {
         scopeNote =
           rows.length === total
-            ? `all ${total} rows stored for this run`
-            : `showing ${rows.length} of ${total} for this run (relax Experiment / Method / Phase)`;
+            ? `all ${total} rows for this run`
+            : `${rows.length} of ${total} rows (relax experiment / method / phase)`;
       }
     }
     const cards = [
       ["Rows (filtered)", rows.length, scopeNote],
       ["Mean accuracy", `${fmt(avg("accuracy"), 2)}%`, ""],
-      ["Mean delta vs baseline", `${fmt(avg("delta_accuracy_vs_baseline"), 2)} pp`, ""],
+      ["Mean Δ vs baseline", `${fmt(avg("delta_accuracy_vs_baseline"), 2)} pp`, ""],
       ["Mean compression", `${fmt(avg("compression_ratio"), 2)}x`, ""],
       ["Best accuracy", best ? `${fmt(best.accuracy, 2)}%` : "-", best ? best.experiment_name : ""],
     ];
-    document.getElementById("kpiGrid").innerHTML = cards
-      .map(
-        ([k, v, n]) =>
-          `<div class="panel"><div class="kpi-title">${k}</div><div class="kpi-value">${v}</div><div class="kpi-note">${n}</div></div>`
-      )
-      .join("");
-  };
-
-  const seriesLabel = (row, key) => {
-    if (key === "fine_tuning_enabled") return row.fine_tuning_enabled ? "Fine-tuned" : "No fine-tuning";
-    return String(row[key] ?? "-");
+    safeSetHtml(
+      kpiGridEl,
+      cards
+        .map(
+          ([k, v, n]) =>
+            `<div class="panel"><div class="kpi-title">${k}</div><div class="kpi-value">${v}</div><div class="kpi-note">${n}</div></div>`
+        )
+        .join("")
+    );
   };
 
   const renderCustomChart = (rows) => {
+    if (!chartReady) return;
     const xKey = chartX.value;
     const yKey = chartY.value;
     const sKey = chartSeries.value;
@@ -467,19 +627,30 @@ function initDashboard(payload) {
     const xLab = chartXLabelIn.value.trim() || fieldLabel(xKey);
     const yLab = chartYLabelIn.value.trim() || fieldLabel(yKey);
     const title = chartTitleIn.value.trim() || `${yLab} vs ${xLab}`;
-    Plotly.newPlot("customChart", traces, academicLayout(title, xLab, yLab), PLOT_CONFIG);
+    if (!traces.length) {
+      plotlyPurge(customChartEl);
+      safeSetHtml(
+        customChartEl,
+        '<p class="named-empty">No numeric X/Y pairs for the current filters — change axes or filters.</p>'
+      );
+      return;
+    }
+    plotlyNewPlot(customChartEl, traces, academicLayout(title, xLab, yLab), PLOT_CONFIG);
   };
 
   const renderTable = (rows) => {
     const sorted = [...rows].sort((a, b) => (b.accuracy ?? -1) - (a.accuracy ?? -1));
-    document.getElementById("tableBody").innerHTML = sorted
-      .map(
-        (r) => `<tr>
-      <td>${r.run_id}</td><td>${r.experiment_name}</td><td>${r.method}</td><td>${r.phase}</td><td>${r.rank_raw}</td>
+    safeSetHtml(
+      tableBody,
+      sorted
+        .map(
+          (r) => `<tr>
+      <td>${escapeHtml(r.run_id)}</td><td>${escapeHtml(r.experiment_name)}</td><td>${escapeHtml(r.method)}</td><td>${escapeHtml(r.phase)}</td><td>${escapeHtml(r.rank_raw)}</td>
       <td>${fmt(r.accuracy, 2)}</td><td>${fmt(r.delta_accuracy_vs_baseline, 2)}</td><td>${fmt(r.compression_ratio, 2)}</td>
       <td>${fmt(r.latency_ms, 2)}</td><td>${fmt(r.throughput_fps, 2)}</td><td>${fmt(r.fine_tuning_time_s, 1)}</td></tr>`
-      )
-      .join("");
+        )
+        .join("")
+    );
   };
 
   const render = () => {
@@ -505,29 +676,219 @@ function initDashboard(payload) {
     chartTitleIn,
     chartXLabelIn,
     chartYLabelIn,
-  ].forEach((el) => el.addEventListener("input", render));
-  [runSel, methodSel, phaseSel, expSel, metricSel, colorSel, showBaselineToggle, chartX, chartY, chartType, chartSeries].forEach(
-    (el) => el.addEventListener("change", render)
-  );
+  ]
+    .filter(Boolean)
+    .forEach((el) => el.addEventListener("input", render));
+  [runSel, methodSel, phaseSel, expSel, metricSel, colorSel, showBaselineToggle, chartX, chartY, chartType, chartSeries]
+    .filter(Boolean)
+    .forEach((el) => el.addEventListener("change", render));
 
   window.addEventListener("resize", () => {
-    if (document.getElementById("customChart")) Plotly.Plots.resize("customChart");
+    if (typeof Plotly !== "undefined") {
+      if (customChartEl) Plotly.Plots.resize(customChartEl);
+      const cmp = document.getElementById("cmpChart");
+      if (cmp) Plotly.Plots.resize(cmp);
+    }
   });
 
   refreshExpFilter();
   render();
+
+  initCompareTab(DATA_ALL);
+}
+
+function initCompareTab(DATA_ALL) {
+  const cmpSearch = document.getElementById("cmpSearch");
+  const cmpIncludeBaseline = document.getElementById("cmpIncludeBaseline");
+  const cmpRowSelect = document.getElementById("cmpRowSelect");
+  const cmpLabel = document.getElementById("cmpLabel");
+  const cmpAdd = document.getElementById("cmpAdd");
+  const cmpClear = document.getElementById("cmpClear");
+  const cmpList = document.getElementById("cmpList");
+  const cmpCount = document.getElementById("cmpCount");
+  const cmpEmpty = document.getElementById("cmpEmpty");
+  const cmpMeta = document.getElementById("cmpMeta");
+  const cmpX = document.getElementById("cmpX");
+  const cmpY = document.getElementById("cmpY");
+  const cmpChart = document.getElementById("cmpChart");
+
+  if (!cmpRowSelect || !cmpAdd || !cmpClear || !cmpList || !cmpX || !cmpY || !cmpChart) {
+    return;
+  }
+
+  let entries = loadNamedEntries();
+
+  const refreshCmpPicker = () => {
+    const q = (cmpSearch && cmpSearch.value ? cmpSearch.value : "").trim().toLowerCase();
+    const inc = cmpIncludeBaseline ? cmpIncludeBaseline.checked : false;
+    let pool = inc ? [...DATA_ALL] : DATA_ALL.filter((r) => !isBaselineRow(r));
+    if (q) {
+      pool = pool.filter((r) => {
+        const blob = `${r.run_id} ${r.method} ${r.experiment_name} ${r.phase} ${r.rank_raw} ${r.rank_scalar}`.toLowerCase();
+        return blob.includes(q);
+      });
+    }
+    cmpRowSelect.innerHTML = "";
+    const opt0 = document.createElement("option");
+    opt0.value = "";
+    opt0.textContent = pool.length
+      ? `— Select a row (${pool.length} matches) —`
+      : "— No matches — adjust search or include baseline";
+    opt0.disabled = true;
+    cmpRowSelect.appendChild(opt0);
+    const seen = new Set();
+    pool.forEach((r) => {
+      const fp = rowFingerprint(r);
+      if (seen.has(fp)) return;
+      seen.add(fp);
+      const o = document.createElement("option");
+      o.value = fp;
+      o.textContent = formatRowOneLine(r);
+      cmpRowSelect.appendChild(o);
+    });
+    if (cmpMeta) {
+      cmpMeta.textContent = `${pool.length} shown · ${DATA_ALL.length} rows in dataset`;
+    }
+  };
+
+  setAxisOptions(cmpX);
+  setAxisOptions(cmpY);
+  cmpX.value = "total_parameters";
+  cmpY.value = "accuracy";
+
+  const renderCmpList = () => {
+    if (cmpCount) cmpCount.textContent = String(entries.length);
+    if (cmpEmpty) cmpEmpty.classList.toggle("hidden", entries.length > 0);
+    safeSetHtml(
+      cmpList,
+      entries
+        .map(
+          (e) => `<li class="named-row cmp-row" data-uid="${escapeHtml(e.uid)}">
+      <div>
+        <div class="named-row-label">${escapeHtml(e.label)}</div>
+        <div class="named-row-meta">${escapeHtml(formatRowOneLine(e.row))}</div>
+      </div>
+      <button type="button" class="btn-remove" data-remove="${escapeHtml(e.uid)}">Remove</button>
+    </li>`
+        )
+        .join("")
+    );
+    cmpList.querySelectorAll("[data-remove]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const uid = btn.getAttribute("data-remove");
+        entries = entries.filter((x) => x.uid !== uid);
+        saveNamedEntries(entries);
+        renderCmpList();
+        renderCmpChart();
+      });
+    });
+  };
+
+  const renderCmpChart = () => {
+    const xKey = cmpX.value;
+    const yKey = cmpY.value;
+
+    const valid = entries.filter((e) => {
+      const x = getRowNumeric(e.row, xKey);
+      const y = getRowNumeric(e.row, yKey);
+      return x !== null && y !== null;
+    });
+
+    if (!valid.length) {
+      plotlyPurge(cmpChart);
+      cmpChart.innerHTML =
+        '<p class="named-empty">Add experiments above, or pick X/Y fields that are numeric for those rows.</p>';
+      return;
+    }
+
+    const usedLegend = new Map();
+    const traces = valid.map((e) => {
+      const x = getRowNumeric(e.row, xKey);
+      const y = getRowNumeric(e.row, yKey);
+      let legendName = (e.label && String(e.label).trim()) || "Unnamed";
+      const n = (usedLegend.get(legendName) || 0) + 1;
+      usedLegend.set(legendName, n);
+      if (n > 1) legendName = `${(e.label && String(e.label).trim()) || "Unnamed"} (${n})`;
+      const text = `${escapeHtml(e.label)}<br>${escapeHtml(e.row.experiment_name)}<br>${escapeHtml(
+        e.row.method
+      )} · ${escapeHtml(e.row.phase)}`;
+      return {
+        name: legendName,
+        type: "scatter",
+        mode: "markers",
+        x: [x],
+        y: [y],
+        text: [text],
+        marker: { size: 12, opacity: 0.92, line: { width: 1, color: "#fff" } },
+      };
+    });
+
+    const xLab = fieldLabel(xKey);
+    const yLab = fieldLabel(yKey);
+    const title = `${yLab} vs ${xLab} (named comparison)`;
+    plotlyNewPlot(cmpChart, traces, academicLayout(title, xLab, yLab), PLOT_CONFIG);
+  };
+
+  cmpAdd.addEventListener("click", () => {
+    const fp = cmpRowSelect.value;
+    if (!fp) {
+      alert("Select a row in the list (below the placeholder).");
+      return;
+    }
+    const rowOrig = DATA_ALL.find((r) => rowFingerprint(r) === fp);
+    if (!rowOrig) {
+      alert("That row is no longer in the dataset — reload the page.");
+      return;
+    }
+    const row = { ...rowOrig };
+    let label = cmpLabel && (cmpLabel.value || "").trim();
+    if (!label) label = formatRowOneLine(row).slice(0, 140);
+
+    const uid =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `id_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    entries.push({ uid, label, row });
+    saveNamedEntries(entries);
+    if (cmpLabel) cmpLabel.value = "";
+    renderCmpList();
+    renderCmpChart();
+  });
+
+  cmpClear.addEventListener("click", () => {
+    if (!entries.length) return;
+    if (!window.confirm("Remove all experiments from the comparison?")) return;
+    entries = [];
+    saveNamedEntries(entries);
+    renderCmpList();
+    renderCmpChart();
+  });
+
+  if (cmpSearch) cmpSearch.addEventListener("input", refreshCmpPicker);
+  if (cmpIncludeBaseline) cmpIncludeBaseline.addEventListener("change", refreshCmpPicker);
+
+  [cmpX, cmpY].forEach((el) => {
+    el.addEventListener("input", renderCmpChart);
+    el.addEventListener("change", renderCmpChart);
+  });
+
+  refreshCmpPicker();
+  renderCmpList();
+  renderCmpChart();
 }
 
 function initExperimentPage(payload) {
-  const DATA = payload.rows;
+  const DATA = Array.isArray(payload.rows) ? payload.rows : [];
+  const meta = payload.meta || {};
   const params = new URLSearchParams(window.location.search);
-  const runId = params.get("run") || pickDefaultRun(payload.meta);
+  const runId = params.get("run") || pickDefaultRun(meta);
   const rows = DATA.filter((r) => r.run_id === runId);
-  document.getElementById("runLabel").textContent = runId || "(none)";
+  const runLabelEl = document.getElementById("runLabel");
+  if (runLabelEl) runLabelEl.textContent = runId || "(none)";
 
   const metaLine = document.getElementById("dataMetaLine");
   if (metaLine) {
-    metaLine.textContent = `${rows.length} rows loaded for ${runId} · ${payload.meta.rows} rows in dataset`;
+    metaLine.textContent = `${rows.length} rows for ${runId} · ${DATA.length} rows in dataset`;
   }
 
   const byMethod = {};
@@ -549,14 +910,18 @@ function initExperimentPage(payload) {
       };
     });
 
-  Plotly.newPlot(
-    "runOverviewPlot",
-    traces,
-    academicLayout(`Accuracy vs rank — ${runId}`, "Rank", "Accuracy (%)"),
-    PLOT_CONFIG
-  );
+  const overviewEl = document.getElementById("runOverviewPlot");
+  if (overviewEl && typeof Plotly !== "undefined") {
+    plotlyNewPlot(
+      overviewEl,
+      traces,
+      academicLayout(`Accuracy vs rank — ${runId}`, "Rank", "Accuracy (%)"),
+      PLOT_CONFIG
+    );
+  }
 
   const body = document.getElementById("runTableBody");
+  if (!body) return;
   body.innerHTML = rows
     .sort((a, b) => (a.rank_scalar ?? -1) - (b.rank_scalar ?? -1))
     .map(
@@ -570,7 +935,7 @@ function initExperimentPage(payload) {
 
 async function boot() {
   try {
-    const payload = await loadData();
+    const payload = normalizePayload(await loadData());
     const signature = JSON.stringify({
       rows: payload.meta.rows,
       latest: payload.meta.latest_run,
@@ -584,7 +949,7 @@ async function boot() {
     if (document.body.dataset.page === "dashboard") {
       window.setInterval(async () => {
         try {
-          const latestPayload = await loadData();
+          const latestPayload = normalizePayload(await loadData());
           const nextSignature = JSON.stringify({
             rows: latestPayload.meta.rows,
             latest: latestPayload.meta.latest_run,

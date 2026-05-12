@@ -14,7 +14,7 @@
     <div class="header">
       <div>
         <h1 class="title">Experiment results</h1>
-        <div class="subtitle">Compression and fine-tuning benchmarks (TFG analysis module).</div>
+        <div class="subtitle">Filter the table, plot any numeric axes, or overlay named experiments on one chart.</div>
         <div class="meta-line" id="dataMetaLine"></div>
       </div>
       <div>
@@ -25,26 +25,26 @@
     <div id="errorBox" class="pill"></div>
 
     <div class="tabs" role="tablist">
-      <button type="button" class="tab active" data-tab="data" role="tab">Data &amp; filters</button>
-      <button type="button" class="tab" data-tab="chart" role="tab">Custom chart</button>
+      <button type="button" class="tab active" data-tab="data" role="tab">Table</button>
+      <button type="button" class="tab" data-tab="chart" role="tab">Chart</button>
+      <button type="button" class="tab" data-tab="compare" role="tab">Compare</button>
+    </div>
+
+    <div class="controls controls-shared">
+      <div class="panel"><label>Run</label><select id="runSelect"></select></div>
+      <div class="panel"><label>Method</label><select id="methodSelect"></select></div>
+      <div class="panel"><label>Phase</label><select id="phaseSelect"></select></div>
+      <div class="panel"><label>Experiment</label><select id="experimentSelect"></select></div>
+      <div class="panel">
+        <label>Baseline</label>
+        <label><input type="checkbox" id="showBaselineToggle" checked /> Show baseline</label>
+      </div>
+      <div class="panel"><label>Table metric</label><select id="metricSelect"></select></div>
+      <div class="panel"><label>Table color</label><select id="colorBySelect"></select></div>
     </div>
 
     <section id="panel-data" class="tab-panel active" role="tabpanel">
-      <div class="controls">
-        <div class="panel"><label>Run</label><select id="runSelect"></select></div>
-        <div class="panel"><label>Method</label><select id="methodSelect"></select></div>
-        <div class="panel"><label>Phase</label><select id="phaseSelect"></select></div>
-        <div class="panel"><label>Experiment</label><select id="experimentSelect"></select></div>
-        <div class="panel">
-          <label>Baseline</label>
-          <label><input type="checkbox" id="showBaselineToggle" checked /> Show baseline row</label>
-        </div>
-        <div class="panel"><label>Quick Y (table context)</label><select id="metricSelect"></select></div>
-        <div class="panel"><label>Color by</label><select id="colorBySelect"></select></div>
-      </div>
-
       <div class="kpis" id="kpiGrid"></div>
-
       <div class="table-wrap">
         <table>
           <thead>
@@ -59,13 +59,14 @@
     </section>
 
     <section id="panel-chart" class="tab-panel" role="tabpanel">
+      <p class="panel-hint">Uses the filters above. Choose <strong>X</strong>, <strong>Y</strong>, plot style, and how series are split (color).</p>
       <div class="chart-controls">
         <div class="panel">
-          <label>X variable</label>
+          <label>X axis</label>
           <select id="chartXField"></select>
         </div>
         <div class="panel">
-          <label>Y variable</label>
+          <label>Y axis</label>
           <select id="chartYField"></select>
         </div>
         <div class="panel">
@@ -80,19 +81,63 @@
           <select id="chartSeriesField"></select>
         </div>
         <div class="panel span-2">
-          <label>Chart title (optional)</label>
-          <input type="text" id="chartTitleInput" placeholder="Auto from axes" />
+          <label>Title (optional)</label>
+          <input type="text" id="chartTitleInput" placeholder="Defaults to Y vs X" />
         </div>
         <div class="panel">
-          <label>X-axis label (optional)</label>
-          <input type="text" id="chartXLabelInput" placeholder="Default from variable name" />
+          <label>X axis label</label>
+          <input type="text" id="chartXLabelInput" placeholder="Defaults from field name" />
         </div>
         <div class="panel">
-          <label>Y-axis label (optional)</label>
-          <input type="text" id="chartYLabelInput" placeholder="Default from variable name" />
+          <label>Y axis label</label>
+          <input type="text" id="chartYLabelInput" placeholder="Defaults from field name" />
         </div>
       </div>
       <div id="customChart" class="panel chart"></div>
+    </section>
+
+    <section id="panel-compare" class="tab-panel" role="tabpanel">
+      <div class="compare-intro panel">
+        <h2 class="compare-title">Compare experiments</h2>
+        <p class="compare-lead">
+          Pick a result row, enter a short <strong>name</strong> (shown in the legend), then <strong>Add to chart</strong>.
+          Add as many as you need — each appears as its own point. Choose X and Y below.
+        </p>
+      </div>
+
+      <div class="compare-simple">
+        <div class="panel compare-add">
+          <label for="cmpSearch">Search</label>
+          <input type="search" id="cmpSearch" class="cmp-search" placeholder="run, method, experiment, phase, rank…" autocomplete="off" />
+
+          <label class="cmp-inline"><input type="checkbox" id="cmpIncludeBaseline" /> Include baseline rows</label>
+
+          <label for="cmpRowSelect">Result row</label>
+          <select id="cmpRowSelect" class="cmp-select cmp-select-full" size="10"></select>
+
+          <label for="cmpLabel">Display name (legend)</label>
+          <input type="text" id="cmpLabel" placeholder="e.g. CP rank 64" autocomplete="off" />
+
+          <div class="compare-actions">
+            <button type="button" class="btn-primary" id="cmpAdd">Add to chart</button>
+            <button type="button" class="btn-ghost" id="cmpClear">Clear all</button>
+          </div>
+          <p id="cmpMeta" class="cmp-meta"></p>
+        </div>
+
+        <div class="panel compare-list-wrap">
+          <h3 class="compare-subtitle">Selected (<span id="cmpCount">0</span>)</h3>
+          <ul id="cmpList" class="cmp-list"></ul>
+          <p id="cmpEmpty" class="cmp-empty">No experiments yet — add one above.</p>
+        </div>
+      </div>
+
+      <h3 class="subsection-title">Compare chart axes</h3>
+      <div class="chart-controls compare-chart-ctrl">
+        <div class="panel"><label>X</label><select id="cmpX"></select></div>
+        <div class="panel"><label>Y</label><select id="cmpY"></select></div>
+      </div>
+      <div id="cmpChart" class="panel chart"></div>
     </section>
   </div>
 
