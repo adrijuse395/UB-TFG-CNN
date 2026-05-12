@@ -1,7 +1,14 @@
+"""
+Tucker decomposition module.
+
+Layout (same contract as other methods):
+  - TuckerDecomposedLayer(BaseDecomposedLayer)
+  - compress() → _compress_conv2d | _compress_linear
+"""
+
 import torch
 import torch.nn as nn
 import tensorly as tl
-from tensorly.decomposition import partial_tucker
 from typing import Union, List
 from .base import BaseDecomposedLayer
 

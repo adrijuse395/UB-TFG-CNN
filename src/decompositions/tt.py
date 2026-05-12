@@ -1,3 +1,12 @@
+"""
+TT decomposition module.
+
+Layout (same contract as cp/tucker/cp_gradient):
+  - TTDecomposedLayer(BaseDecomposedLayer)
+  - compress() → _compress_conv2d | _compress_linear
+  - TT-specific forward modules live at the bottom of this file (private helpers).
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -41,7 +50,7 @@ class TTDecomposedLayer(BaseDecomposedLayer):
         factors = tensor_train(W, rank=ranks)
         
         # We need a custom module to handle the on-the-fly reconstruction
-        self.compressed_ops = TTConv2dModule(factors, layer)
+        self.compressed_ops = _TTConv2dModule(factors, layer)
 
     def _compress_linear(self, layer: nn.Linear, rank: int):
         W = layer.weight.data
@@ -51,10 +60,13 @@ class TTDecomposedLayer(BaseDecomposedLayer):
             ranks = rank
             
         factors = tensor_train(W, rank=ranks)
-        self.compressed_ops = TTLinearModule(factors, layer)
+        self.compressed_ops = _TTLinearModule(factors, layer)
 
 
-class TTConv2dModule(nn.Module):
+# --- TT-specific forward modules (not decomposition entry points) -------------
+
+
+class _TTConv2dModule(nn.Module):
     def __init__(self, factors, original_layer):
         super().__init__()
         # Register factors as parameters
@@ -91,7 +103,8 @@ class TTConv2dModule(nn.Module):
         
         return F.conv2d(x, W_rec, self.bias, self.stride, self.padding, self.dilation, self.groups)
 
-class TTLinearModule(nn.Module):
+
+class _TTLinearModule(nn.Module):
     def __init__(self, factors, original_layer):
         super().__init__()
         self.factors = nn.ParameterList([nn.Parameter(f) for f in factors])

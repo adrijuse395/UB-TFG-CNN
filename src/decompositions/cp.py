@@ -1,3 +1,11 @@
+"""
+CP (Parafac) decomposition module.
+
+Layout (same contract as other methods):
+  - CPDecomposedLayer(BaseDecomposedLayer)
+  - compress() → _compress_conv2d | _compress_linear
+"""
+
 import gc
 import time
 import torch

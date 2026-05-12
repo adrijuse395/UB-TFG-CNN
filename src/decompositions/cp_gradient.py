@@ -1,3 +1,11 @@
+"""
+CP via gradient descent (CP_GD) module.
+
+Layout (same contract as other methods):
+  - CPGradientDecomposedLayer(BaseDecomposedLayer)
+  - compress() → _compress_conv2d | _compress_linear
+"""
+
 import time
 import gc
 import torch
