@@ -4,8 +4,10 @@ Runs the full CNN tensor-decomposition experiment pipeline from a JSON config.
 `main.py` only parses CLI args and delegates here so orchestration stays testable
 and separate from the entry point.
 
-CSV logging: after layer replacement we always write one row with phase 'compressed'.
-If fine_tuning is enabled, a second row is written after FT (phase 'fine_tuned').
+CSV logging: after layer replacement we log one row (experiment name may end in
+`[compressed]` when FT is enabled). If fine-tuning is enabled, a second row is
+logged after FT (`[fine_tuned]`). The analyzer infers display phase from names and
+`fine_tuning_enabled` when needed.
 """
 
 from __future__ import annotations
@@ -15,7 +17,7 @@ import gc
 import os
 import re
 import time
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 import torch
 
@@ -39,6 +41,27 @@ def _experiment_base_name_for_ft_pair(exp_name: str) -> str:
     return re.sub(r"\s*\|\s*ft\s*$", "", exp_name, flags=re.IGNORECASE).strip()
 
 
+# Merged with `global_settings.fine_tuning` only — per-experiment FT hyperparameters are ignored.
+DEFAULT_GLOBAL_FINE_TUNING: Dict[str, Any] = {
+    "epochs": 3,
+    "learning_rate": 1e-4,
+    "early_stopping": True,
+    "patience": 2,
+    "min_improvement": 0.25,
+    "monitor": "val_accuracy",
+    "max_train_batches_per_epoch": 60,
+    "max_val_batches_per_epoch": 20,
+    "kfold": 1,
+    "kfold_seed": 42,
+}
+
+
+def _resolved_fine_tuning_settings(global_settings: Dict[str, Any]) -> Dict[str, Any]:
+    raw = global_settings.get("fine_tuning")
+    user: Dict[str, Any] = raw if isinstance(raw, dict) else {}
+    return {**DEFAULT_GLOBAL_FINE_TUNING, **user}
+
+
 def _free_model(model, device: str) -> None:
     try:
         model.cpu()
@@ -53,49 +76,22 @@ def _attach_fine_tuning_metadata(
     result: Dict[str, Any],
     *,
     enabled: bool,
-    phase: str,
-    epochs: int,
-    learning_rate: float,
-    fine_tuning_time_s: float,
-    early_stopping: bool = False,
-    patience: int = 0,
-    min_improvement: float = 0.0,
-    monitor: str = "",
-    best_epoch: int = 0,
-    stopped_early: int = 0,
-    last_val_loss: float = 0.0,
-    last_val_accuracy: float = 0.0,
+    fine_tuning_time_s: float = 0.0,
 ) -> Dict[str, Any]:
     result["fine_tuning_enabled"] = enabled
-    result["fine_tuning_phase"] = phase
-    result["fine_tuning_epochs"] = epochs if enabled else 0
-    result["fine_tuning_learning_rate"] = learning_rate if enabled else 0.0
-    result["fine_tuning_time_s"] = round(fine_tuning_time_s, 4)
-    result["fine_tuning_early_stopping"] = early_stopping if enabled else False
-    result["fine_tuning_patience"] = patience if enabled else 0
-    result["fine_tuning_min_improvement"] = min_improvement if enabled else 0.0
-    result["fine_tuning_monitor"] = monitor if enabled else ""
-    result["fine_tuning_best_epoch"] = best_epoch if enabled else 0
-    result["fine_tuning_stopped_early"] = stopped_early if enabled else 0
-    result["fine_tuning_last_val_loss"] = last_val_loss if enabled else 0.0
-    result["fine_tuning_last_val_accuracy"] = last_val_accuracy if enabled else 0.0
+    result["fine_tuning_time_s"] = round(fine_tuning_time_s, 4) if enabled else 0.0
     return result
 
 
-def _resolve_device(global_settings: Dict[str, Any]) -> Tuple[str, str, bool]:
+def _resolve_device(global_settings: Dict[str, Any]) -> str:
     """
-    Returns (device_string, exec_on, exec_gpu_enabled).
+    Single switch: ``global_settings.use_gpu`` (default True).
+    CUDA is used only when that flag is true *and* ``torch.cuda.is_available()``.
     """
-    execution = global_settings.get("execution", {}) or {}
-    exec_gpu_enabled = bool(execution.get("gpu", global_settings.get("use_gpu", True)))
-    exec_on = str(execution.get("on", "gpu")).strip().lower()
-    if exec_on not in {"cpu", "gpu"}:
-        exec_on = "gpu"
-    if exec_on == "cpu":
-        device = "cpu"
-    else:
-        device = "cuda" if (torch.cuda.is_available() and exec_gpu_enabled) else "cpu"
-    return device, exec_on, exec_gpu_enabled
+    want_gpu = bool(global_settings.get("use_gpu", True))
+    if want_gpu and torch.cuda.is_available():
+        return "cuda"
+    return "cpu"
 
 
 def _build_compress_kwargs(
@@ -160,7 +156,7 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
     )
     resource_limits = ConfigParser.merge_resource_limits(resource_limits_cfg)
 
-    device, exec_on, exec_gpu_enabled = _resolve_device(global_settings)
+    device = _resolve_device(global_settings)
     print(f"[*] Using device: {device}")
     print(
         "[*] resource_limits:",
@@ -169,8 +165,9 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
         "(method-specific params: method_defaults + experiment.method_params)",
     )
     print(
-        "[*] execution:",
-        f"requested_on={exec_on}, gpu_enabled={exec_gpu_enabled}, resolved_device={device}",
+        "[*] use_gpu:",
+        f"requested={bool(global_settings.get('use_gpu', True))}, "
+        f"cuda_available={torch.cuda.is_available()}, resolved={device}",
     )
 
     logger = RunLogger(base_dir="runs", config=config)
@@ -182,7 +179,7 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
         print(f"[!] batch_size clamped to {batch_size} (resource_limits.max_batch_size).")
 
     print(f"[*] Loading Dataset: {dataset_name.upper()}...")
-    train_loader, val_loader, test_loader = DatasetFactory.get_dataloaders(
+    train_loader, val_loader, test_loader, train_full_aug, train_full_eval = DatasetFactory.get_dataloaders(
         dataset_name=dataset_name,
         batch_size=batch_size,
     )
@@ -213,9 +210,6 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
     _attach_fine_tuning_metadata(
         baseline_results,
         enabled=False,
-        phase="baseline",
-        epochs=0,
-        learning_rate=0.0,
         fine_tuning_time_s=0.0,
     )
     logger.log_result(baseline_results)
@@ -245,20 +239,21 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
         target_layers = exp.get("target_layers", [])
         rank = exp.get("rank")
         fine_tuning_enabled = bool(exp.get("fine_tuning", exp.get("fine_tunning", False)))
-        ft_epochs = max(1, int(exp.get("epochs", 1))) if fine_tuning_enabled else 0
-        ft_lr = float(exp.get("learning_rate", 1e-4)) if fine_tuning_enabled else 0.0
-        ft_early_stopping = bool(exp.get("early_stopping", True)) if fine_tuning_enabled else False
-        ft_patience = max(1, int(exp.get("patience", 3))) if fine_tuning_enabled else 0
-        ft_min_improvement = float(
-            exp.get("min_improvement", exp.get("threshold", exp.get("threashold", 0.1)))
-        ) if fine_tuning_enabled else 0.0
-        ft_monitor = str(exp.get("monitor", "val_accuracy")) if fine_tuning_enabled else ""
+        ft_cfg = _resolved_fine_tuning_settings(global_settings)
+        ft_epochs = max(1, int(ft_cfg["epochs"])) if fine_tuning_enabled else 0
+        ft_lr = float(ft_cfg["learning_rate"]) if fine_tuning_enabled else 0.0
+        ft_early_stopping = bool(ft_cfg["early_stopping"]) if fine_tuning_enabled else False
+        ft_patience = max(1, int(ft_cfg["patience"])) if fine_tuning_enabled else 0
+        ft_min_improvement = float(ft_cfg["min_improvement"]) if fine_tuning_enabled else 0.0
+        ft_monitor = str(ft_cfg["monitor"]) if fine_tuning_enabled else ""
         ft_max_train_batches_per_epoch = (
-            max(1, int(exp.get("max_train_batches_per_epoch", 60))) if fine_tuning_enabled else 0
+            max(1, int(ft_cfg["max_train_batches_per_epoch"])) if fine_tuning_enabled else 0
         )
         ft_max_val_batches_per_epoch = (
-            max(1, int(exp.get("max_val_batches_per_epoch", 20))) if fine_tuning_enabled else 0
+            max(1, int(ft_cfg["max_val_batches_per_epoch"])) if fine_tuning_enabled else 0
         )
+        ft_kfold = max(1, int(ft_cfg["kfold"])) if fine_tuning_enabled else 1
+        ft_kfold_seed = int(ft_cfg["kfold_seed"]) if fine_tuning_enabled else 42
 
         if not target_layers:
             print("    [Warning] No target_layers specified. Model unchanged.")
@@ -279,6 +274,7 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
         current_model = copy.deepcopy(base_model)
         compress_kw = _maybe_move_model_for_cp_compression(device, method, current_model, compress_kw)
 
+        # Wall time for decomposition / layer replacement only (excludes test eval and fine-tuning).
         t0 = time.perf_counter()
         ModelReplacer.replace_layers(
             module=current_model,
@@ -316,20 +312,18 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
         _attach_fine_tuning_metadata(
             compressed_results,
             enabled=False,
-            phase="compressed",
-            epochs=0,
-            learning_rate=0.0,
             fine_tuning_time_s=0.0,
         )
         logger.log_result(compressed_results)
 
         if fine_tuning_enabled:
             print(
-                f"    [FineTuning] Starting fine-tuning: epochs={ft_epochs}, "
-                f"learning_rate={ft_lr}, early_stopping={ft_early_stopping}, "
+                f"    [FineTuning] global_settings.fine_tuning → "
+                f"epochs={ft_epochs}, lr={ft_lr}, early_stopping={ft_early_stopping}, "
                 f"patience={ft_patience}, min_improvement={ft_min_improvement}, "
                 f"monitor={ft_monitor}, max_train_batches={ft_max_train_batches_per_epoch}, "
-                f"max_val_batches={ft_max_val_batches_per_epoch}"
+                f"max_val_batches={ft_max_val_batches_per_epoch}, kfold={ft_kfold}, "
+                f"kfold_seed={ft_kfold_seed}"
             )
             ft_info = fine_tune_model(
                 current_model,
@@ -344,6 +338,13 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
                 monitor=ft_monitor,
                 max_train_batches_per_epoch=ft_max_train_batches_per_epoch,
                 max_val_batches_per_epoch=ft_max_val_batches_per_epoch,
+                kfold_splits=ft_kfold,
+                train_full_aug=train_full_aug,
+                train_full_eval=train_full_eval,
+                kfold_seed=ft_kfold_seed,
+                batch_size=batch_size,
+                dataloader_num_workers=2,
+                pin_memory=True,
             )
 
             print("    [FineTuning] Re-evaluating model after fine-tuning...")
@@ -364,18 +365,7 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
             _attach_fine_tuning_metadata(
                 ft_results,
                 enabled=True,
-                phase="fine_tuned",
-                epochs=ft_epochs,
-                learning_rate=ft_lr,
                 fine_tuning_time_s=float(ft_info["fine_tuning_time_s"]),
-                early_stopping=ft_early_stopping,
-                patience=ft_patience,
-                min_improvement=ft_min_improvement,
-                monitor=str(ft_info["fine_tuning_monitor"]),
-                best_epoch=int(ft_info["fine_tuning_best_epoch"]),
-                stopped_early=int(ft_info["fine_tuning_stopped_early"]),
-                last_val_loss=float(ft_info["fine_tuning_last_val_loss"]),
-                last_val_accuracy=float(ft_info["fine_tuning_last_val_accuracy"]),
             )
             logger.log_result(ft_results)
 

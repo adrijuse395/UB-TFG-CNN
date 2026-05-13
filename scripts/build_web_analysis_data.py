@@ -29,6 +29,11 @@ def _rank_scalar(raw: Any) -> Optional[float]:
     s = str(raw).strip()
     if s in {"", "None", "null"}:
         return None
+    if "|" in s:
+        try:
+            return float(s.split("|", 1)[0].strip())
+        except ValueError:
+            pass
     try:
         return float(s)
     except ValueError:
@@ -49,7 +54,23 @@ def collect_rows(runs_dir: Path) -> List[Dict[str, Any]]:
         with csv_path.open("r", encoding="utf-8", newline="") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                phase = row.get("fine_tuning_phase", "") or "legacy"
+                phase = row.get("fine_tuning_phase", "") or ""
+                if not phase:
+                    name = (row.get("experiment_name") or "").strip()
+                    nl = name.lower()
+                    m = (row.get("method") or "").strip()
+                    if m == "None" and name == "Baseline":
+                        phase = "baseline"
+                    elif "[compressed]" in nl:
+                        phase = "compressed"
+                    elif "[fine_tuned]" in nl:
+                        phase = "fine_tuned"
+                    elif m not in {"", "None"} and name and not _to_bool(
+                        row.get("fine_tuning_enabled", False)
+                    ):
+                        phase = "compressed"
+                    else:
+                        phase = "legacy"
                 rec: Dict[str, Any] = {
                     "run_id": run_id,
                     "experiment_name": row.get("experiment_name", ""),

@@ -5,7 +5,19 @@
         "batch_size": 128,
         "use_gpu": true,
         "num_classes": 10,
-        "pretrained": true
+        "pretrained": true,
+        "fine_tuning": {
+            "epochs": 3,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 2,
+            "min_improvement": 0.25,
+            "monitor": "val_accuracy",
+            "max_train_batches_per_epoch": 60,
+            "max_val_batches_per_epoch": 20,
+            "kfold": 3,
+            "kfold_seed": 42
+        }
     },
     "resource_limits": {
         "max_rank": 64,
@@ -42,15 +54,7 @@
                 "features.25"
             ],
             "rank": 2,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 04 | no_ft",
@@ -82,15 +86,7 @@
                 "features.25"
             ],
             "rank": 4,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 06 | no_ft",
@@ -122,15 +118,7 @@
                 "features.25"
             ],
             "rank": 6,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 08 | no_ft",
@@ -162,15 +150,7 @@
                 "features.25"
             ],
             "rank": 8,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 10 | no_ft",
@@ -202,15 +182,7 @@
                 "features.25"
             ],
             "rank": 10,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 12 | no_ft",
@@ -242,15 +214,7 @@
                 "features.25"
             ],
             "rank": 12,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 14 | no_ft",
@@ -282,15 +246,7 @@
                 "features.25"
             ],
             "rank": 14,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 16 | no_ft",
@@ -322,15 +278,7 @@
                 "features.25"
             ],
             "rank": 16,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 18 | no_ft",
@@ -362,15 +310,7 @@
                 "features.25"
             ],
             "rank": 18,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 20 | no_ft",
@@ -402,15 +342,7 @@
                 "features.25"
             ],
             "rank": 20,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 24 | no_ft",
@@ -442,15 +374,7 @@
                 "features.25"
             ],
             "rank": 24,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 28 | no_ft",
@@ -482,15 +406,7 @@
                 "features.25"
             ],
             "rank": 28,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 32 | no_ft",
@@ -522,15 +438,7 @@
                 "features.25"
             ],
             "rank": 32,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 36 | no_ft",
@@ -562,15 +470,7 @@
                 "features.25"
             ],
             "rank": 36,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 40 | no_ft",
@@ -602,15 +502,7 @@
                 "features.25"
             ],
             "rank": 40,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 44 | no_ft",
@@ -642,15 +534,7 @@
                 "features.25"
             ],
             "rank": 44,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 48 | no_ft",
@@ -682,15 +566,7 @@
                 "features.25"
             ],
             "rank": 48,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 52 | no_ft",
@@ -722,15 +598,7 @@
                 "features.25"
             ],
             "rank": 52,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 58 | no_ft",
@@ -762,15 +630,7 @@
                 "features.25"
             ],
             "rank": 58,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         },
         {
             "name": "Tucker rank 64 | no_ft",
@@ -802,15 +662,7 @@
                 "features.25"
             ],
             "rank": 64,
-            "fine_tuning": true,
-            "epochs": 4,
-            "learning_rate": 0.0001,
-            "early_stopping": true,
-            "patience": 1,
-            "min_improvement": 0.5,
-            "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 60,
-            "max_val_batches_per_epoch": 20
+            "fine_tuning": true
         }
     ]
 }

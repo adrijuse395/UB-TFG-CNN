@@ -20,7 +20,7 @@ class DatasetFactory:
         num_workers: int = 2,
         pin_memory: bool = True,
         seed: int = 42,
-    ) -> Tuple[DataLoader, DataLoader, DataLoader]:
+    ) -> Tuple[DataLoader, DataLoader, DataLoader, datasets.CIFAR10, datasets.CIFAR10]:
         name = str(dataset_name).strip().lower()
         if name != "cifar10":
             raise ValueError(f"Unsupported dataset: {dataset_name}. Only 'cifar10' is currently implemented.")
@@ -73,4 +73,7 @@ class DatasetFactory:
             num_workers=num_workers,
             pin_memory=pin_memory,
         )
-        return train_loader, val_loader, test_loader
+        # Full 50k train with eval transforms — same sample order as `train_full` (aug),
+        # for K-fold validation subsets aligned by index.
+        train_full_eval = datasets.CIFAR10(root=data_root, train=True, download=False, transform=eval_tf)
+        return train_loader, val_loader, test_loader, train_full, train_full_eval

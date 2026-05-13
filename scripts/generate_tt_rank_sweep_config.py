@@ -41,14 +41,6 @@ def build_config(method: str = "TT") -> Dict[str, Any]:
                 "target_layers": TT_TARGET_LAYERS,
                 "rank": rank,
                 "fine_tuning": True,
-                "epochs": 4,
-                "learning_rate": 1e-4,
-                "early_stopping": True,
-                "patience": 1,
-                "min_improvement": 0.5,
-                "monitor": "val_accuracy",
-                "max_train_batches_per_epoch": 60,
-                "max_val_batches_per_epoch": 20,
             }
         )
 
@@ -60,6 +52,18 @@ def build_config(method: str = "TT") -> Dict[str, Any]:
             "use_gpu": True,
             "num_classes": 10,
             "pretrained": True,
+            "fine_tuning": {
+                "epochs": 4,
+                "learning_rate": 0.0001,
+                "early_stopping": True,
+                "patience": 1,
+                "min_improvement": 0.5,
+                "monitor": "val_accuracy",
+                "max_train_batches_per_epoch": 60,
+                "max_val_batches_per_epoch": 20,
+                "kfold": 1,
+                "kfold_seed": 42,
+            },
         },
         "resource_limits": {
             "max_rank": 64,

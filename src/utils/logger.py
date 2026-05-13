@@ -3,7 +3,9 @@ src/utils/logger.py
 
 RunLogger: Manages a timestamped run directory for each execution.
 Saves experiment input config and appends result rows to a CSV incrementally,
-so no data is lost if the process is interrupted mid-run.
+so no data is lost if the process is interrupted mid-run. `results.csv` holds
+evaluation metrics only; fine-tuning hyperparameters live in `input_config.json`
+under `global_settings.fine_tuning`.
 """
 
 import csv
@@ -13,28 +15,20 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 
-# Ordered list of CSV columns — must match keys in the dicts passed to log_result()
+# Evaluation-oriented columns only (hyperparameters live in input_config.json → global_settings.fine_tuning).
 CSV_HEADERS = [
     "experiment_name",
     "method",
     "target_layers",
     "rank",
     "fine_tuning_enabled",
-    "fine_tuning_phase",
-    "fine_tuning_epochs",
-    "fine_tuning_learning_rate",
     "fine_tuning_time_s",
-    "fine_tuning_early_stopping",
-    "fine_tuning_patience",
-    "fine_tuning_min_improvement",
-    "fine_tuning_monitor",
-    "fine_tuning_best_epoch",
-    "fine_tuning_stopped_early",
-    "fine_tuning_last_val_loss",
-    "fine_tuning_last_val_accuracy",
     "total_parameters",
     "compression_ratio",
     "compression_time_s",
+    "model_memory_mb",
+    "peak_inference_memory_mb",
+    "test_eval_time_s",
     "macs_g",
     "latency_ms",
     "throughput_fps",

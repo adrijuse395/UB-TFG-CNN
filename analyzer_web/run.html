@@ -11,14 +11,16 @@
 </head>
 <body data-page="run">
   <div class="container">
+    <nav class="site-nav" aria-label="Main sections">
+      <a href="./index.html" class="nav-link" data-nav="dashboard">Dashboard</a>
+      <a href="./index.html#predefined-graphs" class="nav-link" data-nav="pareto">Predefined graphs</a>
+      <a href="./run.html" class="nav-link" data-nav="run">Run detail</a>
+    </nav>
     <div class="header">
       <div>
         <h1 class="title">Run detail</h1>
         <div class="subtitle">Run: <span class="pill" id="runLabel"></span></div>
         <div class="meta-line" id="dataMetaLine"></div>
-      </div>
-      <div>
-        <a class="link" href="./index.html">Back to dashboard</a>
       </div>
     </div>
 
@@ -39,6 +41,6 @@
     </div>
   </div>
 
-  <script src="./assets/app.js"></script>
+  <script type="module" src="./assets/js/boot-run.js"></script>
 </body>
 </html>

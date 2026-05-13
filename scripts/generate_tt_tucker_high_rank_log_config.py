@@ -50,27 +50,13 @@ def make_log_ranks(min_rank: int = 72, max_rank: int = 400, n_points: int = 14) 
 
 
 def build_experiment(name_prefix: str, method: str, rank: int, fine_tuning: bool) -> Dict[str, Any]:
-    exp: Dict[str, Any] = {
+    return {
         "name": f"{name_prefix} rank {rank:03d} | {'ft' if fine_tuning else 'no_ft'}",
         "method": method,
         "target_layers": TARGET_LAYERS,
         "rank": rank,
         "fine_tuning": fine_tuning,
     }
-    if fine_tuning:
-        exp.update(
-            {
-                "epochs": 4,
-                "learning_rate": 1e-4,
-                "early_stopping": True,
-                "patience": 1,
-                "min_improvement": 0.5,
-                "monitor": "val_accuracy",
-                "max_train_batches_per_epoch": 60,
-                "max_val_batches_per_epoch": 20,
-            }
-        )
-    return exp
 
 
 def build_config(ranks: List[int]) -> Dict[str, Any]:
@@ -93,6 +79,18 @@ def build_config(ranks: List[int]) -> Dict[str, Any]:
             "use_gpu": True,
             "num_classes": 10,
             "pretrained": True,
+            "fine_tuning": {
+                "epochs": 4,
+                "learning_rate": 0.0001,
+                "early_stopping": True,
+                "patience": 1,
+                "min_improvement": 0.5,
+                "monitor": "val_accuracy",
+                "max_train_batches_per_epoch": 60,
+                "max_val_batches_per_epoch": 20,
+                "kfold": 1,
+                "kfold_seed": 42,
+            },
         },
         "resource_limits": {
             "max_rank": 400,
