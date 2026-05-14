@@ -165,9 +165,9 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         cp_abort_if_mem_available_mb_below = int(
             kwargs.get("cp_abort_if_mem_available_mb_below", 800)
         )
-        cp_init = str(kwargs.get("cp_init", "random")).lower()
+        cp_init = str(kwargs.get("cp_init", "svd")).lower()
         if cp_init not in {"svd", "random"}:
-            cp_init = "random"
+            cp_init = "svd"
         if isinstance(layer, nn.Conv2d):
             self._compress_conv2d(
                 layer,
