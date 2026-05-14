@@ -20,7 +20,7 @@
         }
     },
     "resource_limits": {
-        "max_rank": 64,
+        "max_rank": 4000,
         "max_batch_size": 256
     },
     "experiments": [

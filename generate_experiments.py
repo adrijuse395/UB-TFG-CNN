@@ -21,6 +21,15 @@ def main():
     with open('config.json', 'r') as f:
         config = json.load(f)
 
+    # Fix resource_limits and fine_tuning batches so we don't under-train or clamp ranks
+    if "resource_limits" not in config:
+        config["resource_limits"] = {}
+    config["resource_limits"]["max_rank"] = 4000
+    
+    if "global_settings" in config and "fine_tuning" in config["global_settings"]:
+        config["global_settings"]["fine_tuning"]["max_train_batches_per_epoch"] = 0
+        config["global_settings"]["fine_tuning"]["max_val_batches_per_epoch"] = 0
+
     target_layers = [
         "features.0", "features.4", "features.8", "features.11",
         "features.15", "features.18", "features.22", "features.25",
