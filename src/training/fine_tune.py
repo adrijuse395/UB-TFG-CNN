@@ -17,6 +17,38 @@ def _load_state_dict_from_cpu(model: nn.Module, cpu_state: Dict[str, torch.Tenso
     model.load_state_dict({k: v.to(device, non_blocking=True) for k, v in cpu_state.items()})
 
 
+@torch.no_grad()
+def _evaluate_validation(
+    model: nn.Module,
+    val_loader: DataLoader,
+    *,
+    device: str,
+    criterion: nn.Module,
+    max_batches: int = 0
+):
+    model.eval()
+    running_loss = 0.0
+    correct = 0
+    total = 0
+    batches = 0
+    for batch_idx, (inputs, targets) in enumerate(val_loader):
+        inputs = inputs.to(device, non_blocking=True)
+        targets = targets.to(device, non_blocking=True)
+        outputs = model(inputs)
+        loss = criterion(outputs, targets)
+        running_loss += float(loss.item())
+        _, predicted = outputs.max(1)
+        total += targets.size(0)
+        correct += int(predicted.eq(targets).sum().item())
+        batches += 1
+        if max_batches > 0 and (batch_idx + 1) >= max_batches:
+            break
+    
+    val_loss = running_loss / max(1, batches)
+    val_accuracy = 100.0 * correct / max(1, total)
+    return val_loss, val_accuracy
+
+
 def _fine_tune_one_phase(
     model: nn.Module,
     train_loader: DataLoader,
