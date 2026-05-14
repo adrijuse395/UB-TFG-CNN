@@ -13,12 +13,14 @@ from .cp import CPDecomposedLayer
 from .cp_gradient import CPGradientDecomposedLayer
 from .tt import TTDecomposedLayer
 from .tucker import TuckerDecomposedLayer
+from .svd import SVDDecomposedLayer
 
 DECOMPOSITION_REGISTRY: Dict[str, Type[BaseDecomposedLayer]] = {
     "Tucker": TuckerDecomposedLayer,
     "CP": CPDecomposedLayer,
     "CP_GD": CPGradientDecomposedLayer,
     "TT": TTDecomposedLayer,
+    "SVD": SVDDecomposedLayer,
 }
 
 

@@ -1,5 +1,0 @@
-experiment_name,method,target_layers,rank,fine_tuning_enabled,fine_tuning_time_s,total_parameters,compression_ratio,compression_time_s,model_memory_mb,peak_inference_memory_mb,test_eval_time_s,macs_g,latency_ms,throughput_fps,accuracy,precision,recall,f1_score
-Baseline,None,None,None,False,0.0,9756426,1.0,0.0,37.2389,0.0,26.2244,0.1539,3.7478,385.08,92.14,92.2106,92.14,92.1492
-CP smoke rank 016 | no_ft,CP,features.0|features.4|features.8|features.11|features.15|features.18|features.22|features.25|classifier.0|classifier.3|classifier.6,16,False,0.0,127017,76.812,5.2343,0.5056,0.0,7.5737,0.0032,4.3302,1369.54,10.0,1.0,10.0,1.8182
-CP smoke rank 064 | no_ft,CP,features.0|features.4|features.8|features.11|features.15|features.18|features.22|features.25|classifier.0|classifier.3|classifier.6,64,False,0.0,463881,21.0322,9.5687,1.7906,0.0,8.8878,0.0103,4.5527,1160.08,10.0,1.0,10.0,1.8182
-CP smoke rank 128 | no_ft,CP,features.0|features.4|features.8|features.11|features.15|features.18|features.22|features.25|classifier.0|classifier.3|classifier.6,128,False,0.0,900361,10.8361,10.7742,3.4557,0.0,10.1433,0.0165,5.3209,1011.81,10.0,1.0,10.0,1.8182

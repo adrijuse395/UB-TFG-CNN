@@ -80,7 +80,7 @@ def _cp_als_svd_init(W: torch.Tensor, rank: int) -> List[torch.Tensor]:
         r0 = M.shape[1]
         if r0 >= rank:
             return M[:, :rank]
-        z = torch.zeros(M.shape[0], rank - r0, device=dev, dtype=dt)
+        z = torch.randn(M.shape[0], rank - r0, device=dev, dtype=dt) * 0.02
         return torch.cat([M, z], dim=1)
 
     m0 = W.reshape(out, -1)
@@ -209,13 +209,7 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         kh = int(layer.kernel_size[0])
         kw = int(layer.kernel_size[1])
 
-        rank_requested = max(1, int(rank))
-        rank = min(rank_requested, in_ch, out_ch)
-        if rank < rank_requested:
-            print(
-                f"    [CP] rank capped by channel dimensions: {rank_requested} -> {rank} "
-                f"(layer {in_ch}->{out_ch}, k={kh}x{kw}; CP rank cannot exceed min(in_channels, out_channels))"
-            )
+        rank = max(1, int(rank))
 
         denom = max(1, in_ch + out_ch + kh + kw)
         max_rank_compression = max(1, int((in_ch * out_ch * kh * kw) / denom))
