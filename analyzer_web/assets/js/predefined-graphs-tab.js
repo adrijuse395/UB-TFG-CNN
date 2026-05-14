@@ -1,6 +1,6 @@
 import { uniq } from "./format-utils.js";
 import { setOptions, escapeHtml, safeSetHtml } from "./dom-utils.js";
-import { isBaselineRow, withDerived, datasetRowFromRawCsvRow } from "./rows.js";
+import { isBaselineRow, withDerived, datasetRowFromRawCsvRow, rawResultsCsvSampleHasRequiredColumns, MIN_RESULTS_CSV_COLUMNS } from "./rows.js";
 import { parseCsvText } from "./csv.js";
 import { listRunIdsFromHttpDirectory } from "./data-loader.js";
 import { newCompareSourceId, collectCompareRunOptions } from "./compare-vega.js";
@@ -316,6 +316,12 @@ export function initPredefinedGraphsTab(DATA_ALL, meta) {
         const rawRows = parseCsvText(text);
         if (!rawRows.length) {
           alert("No data rows in that CSV.");
+          return;
+        }
+        if (!rawResultsCsvSampleHasRequiredColumns(rawRows[0])) {
+          alert(
+            `That CSV must include these columns (from the header row): ${MIN_RESULTS_CSV_COLUMNS.join(", ")}.`
+          );
           return;
         }
         const uploadRunId = `upload_${newCompareSourceId().replace(/-/g, "")}`;

@@ -1,5 +1,0 @@
-experiment_name,method,target_layers,rank,total_parameters,compression_ratio,compression_time_s,macs_g,latency_ms,throughput_fps,accuracy,precision,recall,f1_score
-Baseline,None,None,None,9756426,1.0,0.0,0.1539,5.6219,363.26,92.79,92.7973,92.79,92.784
-Tucker Compression (Deep Layer),Tucker,"[""features.22""]","[64, 64]",7499530,1.3009,1.1926,0.1449,4.7604,412.95,92.78,92.7837,92.78,92.771
-Tucker Compression (All Convs),Tucker,"[""features.0"", ""features.4"", ""features.8"", ""features.11"", ""features.15"", ""features.18"", ""features.22"", ""features.25""]",64,1117971,8.7269,4.6842,0.0319,3.6505,861.59,71.05,84.5983,71.05,73.2603
-Tucker Compression (Convs + Linear),Tucker,"[""features.0"", ""features.4"", ""features.8"", ""features.11"", ""features.15"", ""features.18"", ""features.22"", ""features.25"", ""classifier.0"", ""classifier.3""]",64,724755,13.4617,4.7115,0.0315,3.7565,878.46,71.05,84.5983,71.05,73.2603

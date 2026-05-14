@@ -1,9 +1,10 @@
-torch
-torchvision
-tensorly
-numpy
-pandas
-matplotlib
-tqdm
-scikit-learn
-thop
+# Pinned from a Python 3.12 venv (see project README if you need different torch/CUDA wheels).
+matplotlib==3.10.9
+numpy==2.4.4
+pandas==3.0.2
+scikit-learn==1.8.0
+tensorly==0.9.0
+thop==0.1.1.post2209072238
+torch==2.11.0
+torchvision==0.26.0
+tqdm==4.67.3

@@ -40,14 +40,18 @@ class TuckerDecomposedLayer(BaseDecomposedLayer):
         """
         # Parse rank
         if isinstance(rank, int):
-            # Same rank for both input and output channels
             ranks = [rank, rank]
         else:
-            ranks = rank
-            
-        # Ensure ranks don't exceed actual dimensions
-        ranks[0] = min(ranks[0], layer.out_channels) # R_out
+            ranks = [int(x) for x in rank]
+        orig0, orig1 = ranks[0], ranks[1]
+        # Tucker-2 on channels: ranks cannot exceed out_channels / in_channels respectively.
+        ranks[0] = min(ranks[0], layer.out_channels)  # R_out
         ranks[1] = min(ranks[1], layer.in_channels)  # R_in
+        if ranks[0] != orig0 or ranks[1] != orig1:
+            print(
+                f"    [Tucker] channel ranks clamped to layer sizes: ({orig0},{orig1}) -> ({ranks[0]},{ranks[1]}) "
+                f"(out_ch={layer.out_channels}, in_ch={layer.in_channels})"
+            )
 
         # Extract weights
         W = layer.weight.data

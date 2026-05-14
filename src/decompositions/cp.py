@@ -80,13 +80,21 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         else:
             W = layer.weight.data.detach().float().contiguous()
 
-        # Guard rail 1: do not let CP use very high ranks on deep layers.
-        rank = max(1, min(int(rank), int(layer.in_channels), int(layer.out_channels)))
-        # Guard rail 2: enforce rank where CP still yields parameter compression.
         in_ch = int(layer.in_channels)
         out_ch = int(layer.out_channels)
         kh = int(layer.kernel_size[0])
         kw = int(layer.kernel_size[1])
+
+        # Guard rail 1: CP factors have shapes (out_ch, R) and (in_ch, R) → need R <= min(in_ch, out_ch).
+        rank_requested = max(1, int(rank))
+        rank = min(rank_requested, in_ch, out_ch)
+        if rank < rank_requested:
+            print(
+                f"    [CP] rank capped by channel dimensions: {rank_requested} -> {rank} "
+                f"(layer {in_ch}->{out_ch}, k={kh}x{kw}; CP rank cannot exceed min(in_channels, out_channels))"
+            )
+
+        # Guard rail 2: enforce rank where CP still yields parameter compression.
         denom = max(1, in_ch + out_ch + kh + kw)
         max_rank_compression = max(1, int((in_ch * out_ch * kh * kw) / denom))
         if rank > max_rank_compression:

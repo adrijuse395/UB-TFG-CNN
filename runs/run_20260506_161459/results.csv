@@ -1,9 +1,0 @@
-experiment_name,method,target_layers,rank,total_parameters,compression_ratio,compression_time_s,macs_g,latency_ms,throughput_fps,accuracy,precision,recall,f1_score
-Baseline,None,None,None,9756426,1.0,0.0,0.1539,4.0481,405.39,92.79,92.7973,92.79,92.784
-Tucker Compression (Deep Layer),Tucker,"[""features.22""]","[64, 64]",7499530,1.3009,0.9846,0.1449,4.2963,380.2,92.78,92.7837,92.78,92.771
-Tucker Compression (All Convs),Tucker,"[""features.0"", ""features.4"", ""features.8"", ""features.11"", ""features.15"", ""features.18"", ""features.22"", ""features.25""]",64,1117971,8.7269,3.9985,0.0319,2.4088,830.9,71.05,84.5983,71.05,73.2603
-Tucker Compression (Convs + Linear),Tucker,"[""features.0"", ""features.4"", ""features.8"", ""features.11"", ""features.15"", ""features.18"", ""features.22"", ""features.25"", ""classifier.0"", ""classifier.3""]",64,724755,13.4617,4.0572,0.0315,2.0339,887.85,71.05,84.5983,71.05,73.2603
-CP Compression (All Convs),CP,"[""features.0"", ""features.4"", ""features.8"", ""features.11"", ""features.15"", ""features.18"", ""features.22"", ""features.25""]",16,618437,15.7759,14.5834,0.0037,2.6896,1519.6,9.55,1.651,9.55,2.3313
-CP Compression (Convs + Linear),CP,"[""features.0"", ""features.4"", ""features.8"", ""features.11"", ""features.15"", ""features.18"", ""features.22"", ""features.25"", ""classifier.0"", ""classifier.3""]",16,126917,76.8725,14.8636,0.0032,2.6094,1546.86,10.0,1.0,10.0,1.8182
-TT Compression (All Convs),TT,"[""features.0"", ""features.4"", ""features.8"", ""features.11"", ""features.15"", ""features.18"", ""features.22"", ""features.25""]",64,2004147,4.8681,1.3369,0.0011,21.3906,340.15,78.58,85.9853,78.58,79.8495
-TT Compression (Convs + Linear),TT,"[""features.0"", ""features.4"", ""features.8"", ""features.11"", ""features.15"", ""features.18"", ""features.22"", ""features.25"", ""classifier.0"", ""classifier.3""]",64,1610931,6.0564,1.3556,0.0006,25.4052,335.94,78.58,85.9853,78.58,79.8495

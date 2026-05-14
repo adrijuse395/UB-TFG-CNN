@@ -1,6 +1,6 @@
 import { uniq } from "./format-utils.js";
 import { parseCsvText } from "./csv.js";
-import { datasetRowFromRawCsvRow } from "./rows.js";
+import { datasetRowFromRawCsvRow, rawResultsCsvSampleHasRequiredColumns, MIN_RESULTS_CSV_COLUMNS } from "./rows.js";
 
 /** Parse run_* folder names from typical directory index pages (http.server, nginx, etc.). */
 export function extractRunIdsFromRunsDirectoryHtml(html) {
@@ -99,23 +99,40 @@ export async function loadDataFromRuns() {
   const allRows = [];
   const rowCountByRun = {};
   for (const runId of runIds) {
-    const csvUrl = new URL(`${runId}/results.csv?cb=${Date.now()}`, base);
-    const res = await fetch(csvUrl.href, { cache: "no-store" });
-    if (!res.ok) continue;
-    const rawRows = parseCsvText(await res.text());
-    rowCountByRun[runId] = rawRows.length;
-    rawRows.forEach((row) => {
-      allRows.push(datasetRowFromRawCsvRow(row, runId));
-    });
+    try {
+      const csvUrl = new URL(`${runId}/results.csv?cb=${Date.now()}`, base);
+      const res = await fetch(csvUrl.href, { cache: "no-store" });
+      if (!res.ok) continue;
+      const rawRows = parseCsvText(await res.text());
+      if (!rawRows.length) continue;
+      if (!rawResultsCsvSampleHasRequiredColumns(rawRows[0])) {
+        console.warn(
+          `[analyzer] Skipping run ${runId}: results.csv missing required columns (${MIN_RESULTS_CSV_COLUMNS.join(
+            ", "
+          )}).`
+        );
+        continue;
+      }
+      rowCountByRun[runId] = rawRows.length;
+      rawRows.forEach((row) => {
+        allRows.push(datasetRowFromRawCsvRow(row, runId));
+      });
+    } catch (err) {
+      console.warn(`[analyzer] Skipping run ${runId}:`, err);
+    }
   }
   return {
     meta: {
       rows: allRows.length,
-      runs: runIds,
+      runs: Object.keys(rowCountByRun).length ? Object.keys(rowCountByRun).sort() : [...runIds].sort(),
       runs_fetch_base: base,
       methods: uniq(allRows.map((r) => r.method)),
       phases: uniq(allRows.map((r) => r.phase)),
-      latest_run: runIds.length ? [...runIds].sort().at(-1) : "",
+      latest_run: Object.keys(rowCountByRun).length
+        ? [...Object.keys(rowCountByRun)].sort().at(-1)
+        : runIds.length
+          ? [...runIds].sort().at(-1)
+          : "",
       row_count_by_run: rowCountByRun,
       generated_at: new Date().toISOString(),
       source: "live_csv",

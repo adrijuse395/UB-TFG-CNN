@@ -7,6 +7,8 @@ import {
   isBaselineRow,
   withDerived,
   datasetRowFromRawCsvRow,
+  rawResultsCsvSampleHasRequiredColumns,
+  MIN_RESULTS_CSV_COLUMNS,
 } from "./rows.js";
 import { parseCsvText } from "./csv.js";
 import { listRunIdsFromHttpDirectory } from "./data-loader.js";
@@ -522,6 +524,12 @@ export function initCompareTab(DATA_ALL, meta) {
         const rawRows = parseCsvText(text);
         if (!rawRows.length) {
           alert("No data rows in that CSV.");
+          return;
+        }
+        if (!rawResultsCsvSampleHasRequiredColumns(rawRows[0])) {
+          alert(
+            `That CSV must include these columns (from the header row): ${MIN_RESULTS_CSV_COLUMNS.join(", ")}.`
+          );
           return;
         }
         const uploadRunId = `upload_${newCompareSourceId().replace(/-/g, "")}`;

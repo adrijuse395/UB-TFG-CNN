@@ -8,6 +8,27 @@ export function toFloat(v) {
 
 export const toBool = (v) => ["true", "1", "yes", "y"].includes(String(v).trim().toLowerCase());
 
+/** Headers that must exist in each results.csv row object for analyzer filters/tables to behave. */
+export const MIN_RESULTS_CSV_COLUMNS = ["experiment_name", "method"];
+
+export function rawResultsCsvSampleHasRequiredColumns(sampleRow) {
+  if (!sampleRow || typeof sampleRow !== "object") return false;
+  return MIN_RESULTS_CSV_COLUMNS.every((c) => Object.prototype.hasOwnProperty.call(sampleRow, c));
+}
+
+/**
+ * Prefer CSV column `fine_tuning_enabled` when present; otherwise infer from `[fine_tuned]` in the name.
+ */
+export function inferFineTuningEnabled(row) {
+  if (Object.prototype.hasOwnProperty.call(row, "fine_tuning_enabled")) {
+    const v = row.fine_tuning_enabled;
+    if (v === null || v === undefined || String(v).trim() === "") return false;
+    return toBool(v);
+  }
+  const name = String(row.experiment_name || "").toLowerCase();
+  return name.includes("[fine_tuned]");
+}
+
 /** When CSV has no fine_tuning_phase, infer compressed vs fine_tuned from experiment_name. */
 function inferPhaseFromRow(row) {
   const name = String(row.experiment_name || "").trim();
@@ -16,7 +37,7 @@ function inferPhaseFromRow(row) {
   if (m === "None" && name === "Baseline") return "baseline";
   if (n.includes("[compressed]")) return "compressed";
   if (n.includes("[fine_tuned]")) return "fine_tuned";
-  if (m !== "None" && name && !toBool(row.fine_tuning_enabled)) return "compressed";
+  if (m !== "None" && name && !inferFineTuningEnabled(row)) return "compressed";
   return "";
 }
 
@@ -48,7 +69,7 @@ export function datasetRowFromRawCsvRow(row, runId) {
     experiment_name: row.experiment_name || "",
     method: row.method || "",
     phase: row.fine_tuning_phase || inferPhaseFromRow(row) || row.phase || "legacy",
-    fine_tuning_enabled: toBool(row.fine_tuning_enabled),
+    fine_tuning_enabled: inferFineTuningEnabled(row),
     rank_raw: row.rank || "",
     rank_scalar: rankScalar(row.rank),
     accuracy: toFloat(row.accuracy),
