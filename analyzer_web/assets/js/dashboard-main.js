@@ -53,7 +53,7 @@ export function initDashboard(payload) {
     const latest = meta.latest_run || "";
     const src = meta.source || "?";
     const sourceLabel =
-      src === "live_csv" ? "live CSV" : src === "results_json" ? "results.json" : String(src);
+      src === "live_csv" ? "live CSV" : String(src ?? "");
     const counts = Object.entries(byRun)
       .map(([k, v]) => `${k}: ${v}`)
       .join(" · ");

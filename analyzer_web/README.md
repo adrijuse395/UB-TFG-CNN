@@ -9,16 +9,15 @@ Web module for interactive experiment analysis.
 - `run.html`: run-focused page
 - `assets/styles.css`: UI styles
 - `assets/js/`: ES modules (`boot-dashboard.js` / `boot-run.js`, shared `data-loader.js`, `compare-tab.js`, etc.)
-- `data/results.json`: generated dataset from CSV runs
 
 ## Data loading
 
-- Preferred mode: the analyzer reads `runs/run_*/results.csv` directly from the browser (live mode).
-- Fallback mode: if live read is not possible, it uses `analyzer_web/data/results.json`.
-- Optional legacy build command:
+The analyzer **only** reads `runs/run_*/results.csv` over HTTP. There is **no** silent fallback to a frozen JSON: if the server cannot expose `runs/`, you fix the setup (see below) instead of looking at stale data.
+
+Optional: export a JSON snapshot for a informe or sharing (not used by the web UI):
 
 ```bash
-python3 scripts/build_web_analysis_data.py --runs-dir runs --output analyzer_web/data/results.json
+python3 scripts/build_web_analysis_data.py --runs-dir runs --output /path/to/snapshot.json
 ```
 
 ## Compare tab (Vega-Lite)
@@ -43,5 +42,5 @@ Then open:
 - `http://localhost:8000/analyzer_web/run.html?run=run_YYYYMMDD_HHMMSS`
 
 Notes:
-- Run `http.server` from the project root so `../runs/` is available to `analyzer_web`.
+- Run `http.server` from the **project root** (parent of `analyzer_web/`). The loader resolves `runs/` from `analyzer_web/assets/js/data-loader.js` (`../../../runs/`) so it matches the repo layout even if the page URL is odd.
 - Dashboard auto-refresh checks for new CSV rows every ~8 seconds.

@@ -1,0 +1,87 @@
+{
+    "global_settings": {
+        "dataset": "cifar10",
+        "model": "vgg11_bn",
+        "batch_size": 128,
+        "use_gpu": true,
+        "num_classes": 10,
+        "pretrained": true,
+        "execution": {
+            "gpu": true,
+            "on": "gpu"
+        }
+    },
+    "resource_limits": {
+        "max_rank": 400,
+        "max_batch_size": 256
+    },
+    "method_defaults": {
+        "CP": {
+            "parafac_n_iter_max": 25,
+            "parafac_tol": 0.0001,
+            "cp_parafac_on_cpu": true,
+            "cp_layer_timeout_s": 120.0,
+            "cp_abort_if_mem_available_mb_below": 1200,
+            "cp_init": "svd"
+        }
+    },
+    "experiments": [
+        {
+            "name": "CP smoke rank 016 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3",
+                "classifier.6"
+            ],
+            "rank": 16,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP smoke rank 064 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3",
+                "classifier.6"
+            ],
+            "rank": 64,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP smoke rank 128 | no_ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3",
+                "classifier.6"
+            ],
+            "rank": 128,
+            "fine_tuning": false
+        }
+    ]
+}

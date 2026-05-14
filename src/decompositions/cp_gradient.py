@@ -4,6 +4,28 @@ CP via gradient descent (CP_GD) module.
 Layout (same contract as other methods):
   - CPGradientDecomposedLayer(BaseDecomposedLayer)
   - compress() → _compress_conv2d | _compress_linear
+
+What CP_GD does (Conv2d)
+------------------------
+The layer weight tensor W has shape (out_ch, in_ch, k_h, k_w). CP_GD fits a **CP-style**
+sum of rank-R rank-1 tensors in outer-product form::
+
+    W_hat[o,i,h,w] ≈ Σ_r  f_out[o,r] · f_in[i,r] · f_h[h,r] · f_w[w,r]
+
+using **gradient descent**: Adam minimizes the **Frobenius MSE** ``||W_hat - W||²``
+over the four factor matrices ``f_out, f_in, f_h, f_w`` (same stacked 4-conv layout as
+classical CP after the fit).
+
+- ``cp_gd_steps``: **maximum** Adam iterations **per Conv2d layer** (each target layer
+  runs this loop independently). Tucker/TT in this project use TensorLy **closed-form /
+  few-SVD** decompositions per layer — orders of magnitude fewer optimizer steps. For
+  **comparable compute budget** across methods in sweeps, keep ``cp_gd_steps`` modest
+  (defaults are set low; raise in ``method_defaults.CP_GD`` for high-quality fits).
+- ``cp_gd_init``: ``svd`` uses per-mode SVD warm-starts; ``random`` needs more steps.
+- ``cp_gd_timeout_s``: wall-clock cap per layer (stops the loop early).
+- ``cp_gd_on_cpu``: where the GD loop runs (weights are still folded back to the model device).
+
+Linear layers use truncated SVD (same as the CP path), not GD.
 """
 
 import time
@@ -39,7 +61,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
             self._compress_conv2d(
                 layer,
                 int(rank),
-                cp_gd_steps=int(kwargs.get("cp_gd_steps", 3000)),
+                cp_gd_steps=int(kwargs.get("cp_gd_steps", 300)),
                 cp_gd_lr=float(kwargs.get("cp_gd_lr", 0.01)),
                 cp_gd_on_cpu=bool(kwargs.get("cp_gd_on_cpu", True)),
                 cp_gd_timeout_s=float(kwargs.get("cp_gd_timeout_s", 180.0)),

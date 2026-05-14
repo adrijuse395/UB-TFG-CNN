@@ -135,8 +135,8 @@ def main() -> None:
     parser.add_argument("--runs-dir", default="runs", help="Directory with run_*/results.csv")
     parser.add_argument(
         "--output",
-        default="analyzer_web/data/results.json",
-        help="Output JSON path",
+        default="runs_analysis_snapshot.json",
+        help="Output JSON path (not read by the analyzer; for exports only)",
     )
     args = parser.parse_args()
 

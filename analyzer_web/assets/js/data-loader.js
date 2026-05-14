@@ -2,7 +2,20 @@ import { uniq } from "./format-utils.js";
 import { parseCsvText } from "./csv.js";
 import { datasetRowFromRawCsvRow, rawResultsCsvSampleHasRequiredColumns, MIN_RESULTS_CSV_COLUMNS } from "./rows.js";
 
-/** Parse run_* folder names from typical directory index pages (http.server, nginx, etc.). */
+/**
+ * Names of folders under runs/ that hold results.csv.
+ * Official logger uses run_YYYYMMDD_HHMMSS; other dirs (e.g. run_tt_1) are allowed if they match this pattern.
+ */
+export function isRunDirectoryName(name) {
+  const s = String(name || "").trim();
+  return /^run_[A-Za-z0-9_.-]+$/.test(s) && s.length > 4;
+}
+
+const RUN_DIR_RE = /\brun_[A-Za-z0-9_.-]+\b/g;
+
+/**
+ * Parse run_* directory names from directory index HTML (http.server, nginx autoindex, etc.).
+ */
 export function extractRunIdsFromRunsDirectoryHtml(html) {
   const seen = new Set();
   const ids = [];
@@ -12,45 +25,78 @@ export function extractRunIdsFromRunsDirectoryHtml(html) {
       .split("/")
       .pop()
       .trim();
-    if (!/^run_\d{8}_\d{6}$/.test(id) || seen.has(id)) return;
+    if (!isRunDirectoryName(id) || seen.has(id)) return;
     seen.add(id);
     ids.push(id);
   };
-  const reHref = /href\s*=\s*["']([^"']*?)(run_\d{8}_\d{6})\/?["']/gi;
+  const reHref = /href\s*=\s*["']([^"']*?)(run_[A-Za-z0-9_.-]+)\/?["']/gi;
   let m;
   while ((m = reHref.exec(html)) !== null) add(m[2]);
-  const reLoose = /(^|[\s"'>/])(run_\d{8}_\d{6})\/?(?=["'\s<]|$)/gm;
+  const reLoose = /(^|[\s"'>/])(run_[A-Za-z0-9_.-]+)\/?(?=["'\s<]|$)/gm;
   while ((m = reLoose.exec(html)) !== null) add(m[2]);
+  let m2;
+  RUN_DIR_RE.lastIndex = 0;
+  while ((m2 = RUN_DIR_RE.exec(html)) !== null) add(m2[0]);
   return uniq(ids);
 }
 
-export async function discoverRunsListing() {
+/**
+ * Absolute bases for runs/ (trailing slash). Primary: URL relative to this module —
+ * analyzer_web/assets/js/data-loader.js → ../../../runs/ = repo root runs/.
+ * Fallbacks: page URL and /runs/ on the same origin.
+ */
+export function getRunsDirectoryBaseCandidates() {
+  const out = [];
+  const add = (href) => {
+    if (!href) return;
+    let s = String(href).trim();
+    if (!s) return;
+    s = s.replace(/\/?$/, "/");
+    if (!out.includes(s)) out.push(s);
+  };
+  try {
+    add(new URL("../../../runs/", import.meta.url).href);
+  } catch (_) {
+    /* ignore */
+  }
+  try {
+    add(new URL("../runs/", window.location.href).href);
+  } catch (_) {
+    /* ignore */
+  }
   const origin = String(window.location.origin || "").replace(/\/$/, "");
-  const page = window.location.href;
-  const pageDir = new URL(".", page).href;
-  const candidates = [
-    new URL("../runs/", page).href,
-    `${origin}/runs/`,
-    new URL("./runs/", page).href,
-    new URL("runs/", pageDir).href,
-  ];
-  const seen = new Set();
+  if (origin) add(`${origin}/runs/`);
+  try {
+    add(new URL("./runs/", window.location.href).href);
+  } catch (_) {
+    /* ignore */
+  }
+  try {
+    add(new URL("runs/", new URL(".", window.location.href)).href);
+  } catch (_) {
+    /* ignore */
+  }
+  return out;
+}
+
+export async function discoverRunsListing() {
+  const candidates = getRunsDirectoryBaseCandidates();
+  const tried = [];
   for (let listUrl of candidates) {
     listUrl = listUrl.replace(/\/?$/, "/");
-    if (seen.has(listUrl)) continue;
-    seen.add(listUrl);
+    tried.push(listUrl);
     try {
       const res = await fetch(`${listUrl}?cb=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) continue;
       const html = await res.text();
       const ids = extractRunIdsFromRunsDirectoryHtml(html);
       if (!ids.length) continue;
-      return { base: listUrl, ids };
+      return { base: listUrl, ids, tried };
     } catch (_) {
       /* try next */
     }
   }
-  return { base: null, ids: [] };
+  return { base: null, ids: [], tried };
 }
 
 export async function listRunIdsFromHttpDirectory() {
@@ -76,7 +122,7 @@ export async function mergeRunIdsForPicker(meta, rows) {
   let merged = uniq([...fromMeta, ...fromRows]).sort();
   try {
     const http = await listRunIdsFromHttpDirectory();
-    const httpOk = http.map((x) => String(x).trim()).filter((x) => /^run_\d{8}_\d{6}$/.test(x));
+    const httpOk = http.map((x) => String(x).trim()).filter((x) => isRunDirectoryName(x));
     merged = uniq([...merged, ...httpOk]).sort();
   } catch (_) {
     /* offline or blocked fetch */
@@ -85,10 +131,15 @@ export async function mergeRunIdsForPicker(meta, rows) {
 }
 
 export async function loadDataFromRuns() {
-  const { base, ids: runIds } = await discoverRunsListing();
+  const { base, ids: runIds, tried } = await discoverRunsListing();
   if (!base || !runIds.length) {
+    const hint = tried.length ? ` Tried:\n${tried.map((u) => `  • ${u}`).join("\n")}` : "";
     throw new Error(
-      "No runs/ folder found. Start the server in the repo root (folder that contains runs/ and analyzer_web/), then open http://localhost:PORT/analyzer_web/index.html"
+      "Could not list runs/ or find any run_* result folders (name pattern: run_ plus letters, digits, _, . or -). " +
+        "Serve the **repository root** (where both runs/ and analyzer_web/ live), e.g. " +
+        "`python -m http.server 8000` from the project root, then open " +
+        "http://localhost:8000/analyzer_web/index.html" +
+        hint
     );
   }
   try {
@@ -121,6 +172,12 @@ export async function loadDataFromRuns() {
       console.warn(`[analyzer] Skipping run ${runId}:`, err);
     }
   }
+  if (!allRows.length && runIds.length) {
+    throw new Error(
+      "Found run_* folders under runs/ but loaded zero rows. " +
+        "Check each run's results.csv (required columns: experiment_name, method) and the browser console for [analyzer] warnings."
+    );
+  }
   return {
     meta: {
       rows: allRows.length,
@@ -141,22 +198,9 @@ export async function loadDataFromRuns() {
   };
 }
 
-export async function loadDataFromJsonFallback() {
-  const url = `./data/results.json?cb=${Date.now()}`;
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error(`Cannot load live CSV or data/results.json (${res.status})`);
-  const payload = await res.json();
-  payload.meta = payload.meta || {};
-  payload.meta.source = payload.meta.source || "results_json";
-  return payload;
-}
-
+// Loads live CSV from runs/run_*/results.csv over HTTP (see README). No bundled snapshot fallback.
 export async function loadData() {
-  try {
-    return await loadDataFromRuns();
-  } catch (_) {
-    return loadDataFromJsonFallback();
-  }
+  return loadDataFromRuns();
 }
 
 export function normalizePayload(raw) {

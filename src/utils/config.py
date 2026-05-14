@@ -23,7 +23,8 @@ DEFAULT_RESOURCE_LIMITS: Dict[str, Any] = {
 DEFAULT_METHOD_PARAMS: Dict[str, Dict[str, Any]] = {
     "CP": {},
     "CP_GD": {
-        "cp_gd_steps": 3000,
+        # Keep modest vs Tucker/TT (one-shot decompositions) for fair method sweeps; raise for tighter fits.
+        "cp_gd_steps": 300,
         "cp_gd_lr": 0.01,
         "cp_gd_on_cpu": True,
         "cp_gd_init": "svd",
@@ -52,7 +53,7 @@ class ConfigParser:
     def _coerce_method_params(method: str, params: Dict[str, Any]) -> Dict[str, Any]:
         p = dict(params)
         if method == "CP_GD":
-            p["cp_gd_steps"] = int(p.get("cp_gd_steps", 3000))
+            p["cp_gd_steps"] = int(p.get("cp_gd_steps", 300))
             p["cp_gd_lr"] = float(p.get("cp_gd_lr", 0.01))
             p["cp_gd_on_cpu"] = bool(p.get("cp_gd_on_cpu", True))
             p["cp_gd_init"] = str(p.get("cp_gd_init", "svd")).strip().lower()

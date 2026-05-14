@@ -94,19 +94,9 @@ def _resolve_device(global_settings: Dict[str, Any]) -> str:
     return "cpu"
 
 
-def _build_compress_kwargs(
-    method: str,
-    rank: Any,
-    method_params: Dict[str, Any],
-) -> Dict[str, Any]:
-    compress_kw: Dict[str, Any] = {"rank": rank}
-    if method == "CP_GD":
-        compress_kw["cp_gd_steps"] = method_params["cp_gd_steps"]
-        compress_kw["cp_gd_lr"] = method_params["cp_gd_lr"]
-        compress_kw["cp_gd_on_cpu"] = method_params["cp_gd_on_cpu"]
-        compress_kw["cp_gd_init"] = method_params["cp_gd_init"]
-        compress_kw["cp_gd_scheduler_patience"] = method_params["cp_gd_scheduler_patience"]
-    return compress_kw
+def _build_compress_kwargs(method: str, rank: Any, method_params: Dict[str, Any]) -> Dict[str, Any]:
+    """Rank plus all resolved method_params (parafac / CP-ALS / Tucker / TT knobs)."""
+    return {"rank": rank, **(method_params or {})}
 
 
 def _maybe_move_model_for_cp_compression(
