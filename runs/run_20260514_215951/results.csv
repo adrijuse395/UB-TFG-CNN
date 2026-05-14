@@ -1,0 +1,3 @@
+experiment_name,method,target_layers,rank,fine_tuning_enabled,fine_tuning_time_s,total_parameters,compression_ratio,compression_time_s,model_memory_mb,peak_inference_memory_mb,test_eval_time_s,macs_g,latency_ms,throughput_fps,accuracy,precision,recall,f1_score
+Baseline,None,None,None,False,0.0,9756426,1.0,0.0,37.2389,128.3779,1.5811,0.1539,2.3515,14622.28,92.14,92.2106,92.14,92.1492
+SVD rank 0002 [compressed],SVD,features.0|features.4|features.8|features.11|features.15|features.18|features.22|features.25|classifier.0|classifier.3|classifier.6,2,False,0.0,60308,161.7766,1.8671,0.2511,74.9014,1.5331,0.002,2.1155,15682.23,10.0,1.0,10.0,1.8182
