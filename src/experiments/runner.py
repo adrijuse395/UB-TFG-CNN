@@ -237,10 +237,10 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
         ft_min_improvement = float(ft_cfg["min_improvement"]) if fine_tuning_enabled else 0.0
         ft_monitor = str(ft_cfg["monitor"]) if fine_tuning_enabled else ""
         ft_max_train_batches_per_epoch = (
-            max(1, int(ft_cfg["max_train_batches_per_epoch"])) if fine_tuning_enabled else 0
+            int(ft_cfg["max_train_batches_per_epoch"]) if fine_tuning_enabled else 0
         )
         ft_max_val_batches_per_epoch = (
-            max(1, int(ft_cfg["max_val_batches_per_epoch"])) if fine_tuning_enabled else 0
+            int(ft_cfg["max_val_batches_per_epoch"]) if fine_tuning_enabled else 0
         )
         ft_kfold = max(1, int(ft_cfg["kfold"])) if fine_tuning_enabled else 1
         ft_kfold_seed = int(ft_cfg["kfold_seed"]) if fine_tuning_enabled else 42

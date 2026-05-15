@@ -64,8 +64,6 @@ class TTDecomposedLayer(BaseDecomposedLayer):
 
 
 # --- TT-specific forward modules (not decomposition entry points) -------------
-
-
 class _TTConv2dModule(nn.Module):
     def __init__(self, factors, original_layer):
         super().__init__()

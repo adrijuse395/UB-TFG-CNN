@@ -64,7 +64,7 @@ class CPGradientDecomposedLayer(BaseDecomposedLayer):
                 cp_gd_steps=int(kwargs.get("cp_gd_steps", 300)),
                 cp_gd_lr=float(kwargs.get("cp_gd_lr", 0.01)),
                 cp_gd_on_cpu=bool(kwargs.get("cp_gd_on_cpu", True)),
-                cp_gd_timeout_s=float(kwargs.get("cp_gd_timeout_s", 180.0)),
+                cp_gd_timeout_s=float(kwargs.get("cp_gd_timeout_s", 300.0)),
                 cp_abort_if_mem_available_mb_below=int(
                     kwargs.get("cp_abort_if_mem_available_mb_below", 800)
                 ),

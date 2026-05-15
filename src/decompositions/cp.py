@@ -161,7 +161,7 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         parafac_n_iter_max = int(kwargs.get("parafac_n_iter_max", 60))
         parafac_tol = float(kwargs.get("parafac_tol", 1e-5))
         cp_parafac_on_cpu = bool(kwargs.get("cp_parafac_on_cpu", True))
-        cp_layer_timeout_s = float(kwargs.get("cp_layer_timeout_s", 20.0))
+        cp_layer_timeout_s = float(kwargs.get("cp_layer_timeout_s", 300.0))
         cp_abort_if_mem_available_mb_below = int(
             kwargs.get("cp_abort_if_mem_available_mb_below", 800)
         )
