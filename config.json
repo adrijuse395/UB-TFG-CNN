@@ -15,7 +15,7 @@
             "monitor": "val_accuracy",
             "max_train_batches_per_epoch": 0,
             "max_val_batches_per_epoch": 0,
-            "kfold": 3,
+            "kfold": 1,
             "kfold_seed": 42
         }
     },
