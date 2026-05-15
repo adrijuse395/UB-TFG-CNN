@@ -307,11 +307,18 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
         logger.log_result(compressed_results)
 
         if fine_tuning_enabled:
+            compressed_acc = compressed_results["accuracy"]
+            max_lr = 1e-3
+            min_lr = 1e-4
+            dynamic_lr = min_lr + (max_lr - min_lr) * (1.0 - (compressed_acc / 100.0))
+            dynamic_lr = round(dynamic_lr, 5)
+
             print(
                 f"    [FineTuning] global_settings.fine_tuning → "
-                f"epochs={ft_epochs}, lr={ft_lr}, early_stopping={ft_early_stopping}, "
-                f"patience={ft_patience}, min_improvement={ft_min_improvement}, "
-                f"monitor={ft_monitor}, max_train_batches={ft_max_train_batches_per_epoch}, "
+                f"epochs={ft_epochs}, lr={dynamic_lr} (dynamic based on {compressed_acc:.2f}% acc), "
+                f"early_stopping={ft_early_stopping}, patience={ft_patience}, "
+                f"min_improvement={ft_min_improvement}, monitor={ft_monitor}, "
+                f"max_train_batches={ft_max_train_batches_per_epoch}, "
                 f"max_val_batches={ft_max_val_batches_per_epoch}, kfold={ft_kfold}, "
                 f"kfold_seed={ft_kfold_seed}"
             )
@@ -321,7 +328,7 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
                 val_loader,
                 device=device,
                 epochs=ft_epochs,
-                learning_rate=ft_lr,
+                learning_rate=dynamic_lr,
                 early_stopping=ft_early_stopping,
                 patience=ft_patience,
                 min_improvement=ft_min_improvement,
