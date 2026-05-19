@@ -101,20 +101,20 @@ class TuckerDecomposedLayer(BaseDecomposedLayer):
         rank = min(rank, min(layer.in_features, layer.out_features))
         
         W = layer.weight.data
-        U, S, V = torch.svd(W)
-        
+        U, S, Vh = torch.linalg.svd(W, full_matrices=False)
+
         U_trunc = U[:, :rank]
         S_trunc = S[:rank]
-        V_trunc = V[:, :rank]
-        
-        # W ~ U * S * V^T = (U * S) * V^T
-        # First layer computes V^T * X
+        Vh_trunc = Vh[:rank, :]
+
+        # W ≈ U · diag(S) · Vh  →  (U · diag(S)) · Vh
+        # First layer computes Vh_trunc @ x  (Vh is already V^T)
         first_layer = nn.Linear(layer.in_features, rank, bias=False)
-        first_layer.weight.data = V_trunc.t()
-        
-        # Second layer computes (U * S) * (V^T * X)
+        first_layer.weight.data = Vh_trunc
+
+        # Second layer computes (U · diag(S)) @ (Vh_trunc @ x)
         second_layer = nn.Linear(rank, layer.out_features, bias=layer.bias is not None)
-        second_layer.weight.data = torch.mm(U_trunc, torch.diag(S_trunc))
+        second_layer.weight.data = U_trunc * S_trunc.unsqueeze(0)
         
         if layer.bias is not None:
             second_layer.bias.data = layer.bias.data

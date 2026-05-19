@@ -1,12 +1,14 @@
 import statistics
 import time
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 
 import numpy as np
 import torch
 import torch.nn as nn
 from sklearn.model_selection import KFold
 from torch.utils.data import DataLoader, Subset
+
+CheckpointStrategy = Literal["best_val", "final"]
 
 
 def _snapshot_state_dict_cpu(model: nn.Module) -> Dict[str, torch.Tensor]:
@@ -24,7 +26,7 @@ def _evaluate_validation(
     *,
     device: str,
     criterion: nn.Module,
-    max_batches: int = 0
+    max_batches: int = 0,
 ):
     model.eval()
     running_loss = 0.0
@@ -43,7 +45,7 @@ def _evaluate_validation(
         batches += 1
         if max_batches > 0 and (batch_idx + 1) >= max_batches:
             break
-    
+
     val_loss = running_loss / max(1, batches)
     val_accuracy = 100.0 * correct / max(1, total)
     return val_loss, val_accuracy
@@ -64,10 +66,18 @@ def _fine_tune_one_phase(
     max_train_batches_per_epoch: int = 0,
     max_val_batches_per_epoch: int = 0,
     phase_tag: str = "",
+    checkpoint_strategy: CheckpointStrategy = "best_val",
+    val_overfit_margin: float = 3.0,
+    val_overfit_ceiling: float = 96.0,
 ) -> Dict[str, float]:
     """
-    One fine-tuning run with Adam. Keeps the weights from the best validation epoch
-    (restore-best-checkpoint), not the last epoch.
+    One fine-tuning run with Adam.
+
+    ``checkpoint_strategy``:
+      - ``best_val``: keep weights that improve validation vs the pre-FT snapshot
+        (never worse than the compressed model before epoch 1).
+      - ``final``: keep last-epoch weights; if validation looks overfit vs pre-FT,
+        revert to the compressed snapshot (avoids ~99% val / worse test).
     """
     model.to(device)
     is_cuda = device.startswith("cuda") and torch.cuda.is_available()
@@ -76,25 +86,45 @@ def _fine_tune_one_phase(
     monitor = str(monitor).strip().lower()
     if monitor not in {"val_accuracy", "val_loss"}:
         monitor = "val_accuracy"
+    if checkpoint_strategy not in {"best_val", "final"}:
+        raise ValueError(f"Unknown checkpoint_strategy: {checkpoint_strategy!r}")
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
+    prefix = f"    [FineTuning{f' · {phase_tag}' if phase_tag else ''}] "
+
+    compressed_state_cpu = _snapshot_state_dict_cpu(model)
+    initial_val_loss, initial_val_accuracy = _evaluate_validation(
+        model,
+        val_loader,
+        device=device,
+        criterion=criterion,
+        max_batches=max_val_batches_per_epoch,
+    )
+    print(
+        f"{prefix}Pre-FT val: loss={initial_val_loss:.4f} "
+        f"accuracy={initial_val_accuracy:.2f}% "
+        f"(checkpoint={checkpoint_strategy})"
+    )
+
+    best_state_cpu = compressed_state_cpu
+    best_epoch = 0
+    best_val_accuracy = initial_val_accuracy
+    best_val_loss = initial_val_loss
+    best_score = initial_val_accuracy if monitor == "val_accuracy" else -initial_val_loss
+
     total_loss = 0.0
     total_batches = 0
-    best_score: Optional[float] = None
-    best_epoch = 0
-    best_val_accuracy = 0.0
-    best_val_loss = float("inf")
     no_improve_epochs = 0
     stopped_early = False
-    best_state_cpu: Optional[Dict[str, torch.Tensor]] = None
-
-    prefix = f"    [FineTuning{f' · {phase_tag}' if phase_tag else ''}] "
+    reverted_to_compressed = 0
+    last_epoch = 0
 
     t0 = time.perf_counter()
 
     for epoch in range(epochs):
+        last_epoch = epoch + 1
         model.train()
         running_loss = 0.0
         running_batches = 0
@@ -127,28 +157,66 @@ def _fine_tune_one_phase(
         )
         print(f"{prefix}          val_loss={val_loss:.4f} val_accuracy={val_accuracy:.2f}%")
 
-        current_score = val_accuracy if monitor == "val_accuracy" else -val_loss
-        if best_score is None or current_score > (best_score + min_improvement):
-            best_score = current_score
-            best_epoch = epoch + 1
-            best_val_accuracy = val_accuracy
-            best_val_loss = val_loss
-            no_improve_epochs = 0
-            best_state_cpu = _snapshot_state_dict_cpu(model)
-        else:
-            no_improve_epochs += 1
+        if checkpoint_strategy == "best_val":
+            current_score = val_accuracy if monitor == "val_accuracy" else -val_loss
+            if current_score > (best_score + min_improvement):
+                best_score = current_score
+                best_epoch = epoch + 1
+                best_val_accuracy = val_accuracy
+                best_val_loss = val_loss
+                no_improve_epochs = 0
+                best_state_cpu = _snapshot_state_dict_cpu(model)
+            else:
+                no_improve_epochs += 1
 
-        if early_stopping and no_improve_epochs >= patience:
-            stopped_early = True
-            print(
-                f"{prefix}Early stopping at epoch {epoch + 1} "
-                f"(patience={patience}, min_improvement={min_improvement})."
-            )
-            break
+            if early_stopping and no_improve_epochs >= patience:
+                stopped_early = True
+                print(
+                    f"{prefix}Early stopping at epoch {epoch + 1} "
+                    f"(patience={patience}, min_improvement={min_improvement})."
+                )
+                break
 
-    if best_state_cpu is not None:
+    if checkpoint_strategy == "best_val":
         _load_state_dict_from_cpu(model, best_state_cpu, device)
-        print(f"{prefix}Restored best checkpoint (epoch {best_epoch}, monitor={monitor}).")
+        if best_epoch == 0:
+            print(f"{prefix}Restored compressed weights (no val improvement over pre-FT).")
+        else:
+            print(
+                f"{prefix}Restored best checkpoint (epoch {best_epoch}, monitor={monitor}, "
+                f"val_accuracy={best_val_accuracy:.2f}%)."
+            )
+    else:
+        final_val_loss, final_val_accuracy = _evaluate_validation(
+            model,
+            val_loader,
+            device=device,
+            criterion=criterion,
+            max_batches=max_val_batches_per_epoch,
+        )
+        best_val_loss = final_val_loss
+        best_val_accuracy = final_val_accuracy
+        best_epoch = last_epoch
+
+        overfit = final_val_accuracy > (initial_val_accuracy + val_overfit_margin) or (
+            final_val_accuracy > val_overfit_ceiling
+        )
+        if overfit:
+            _load_state_dict_from_cpu(model, compressed_state_cpu, device)
+            reverted_to_compressed = 1
+            best_epoch = 0
+            best_val_accuracy = initial_val_accuracy
+            best_val_loss = initial_val_loss
+            print(
+                f"{prefix}Validation overfit detected "
+                f"(final={final_val_accuracy:.2f}% vs pre-FT={initial_val_accuracy:.2f}%) "
+                f"→ reverted to compressed weights."
+            )
+        else:
+            print(
+                f"{prefix}Keeping last-epoch weights "
+                f"(final val_accuracy={final_val_accuracy:.2f}%)."
+            )
 
     if is_cuda:
         torch.cuda.synchronize()
@@ -162,8 +230,12 @@ def _fine_tune_one_phase(
         "fine_tuning_monitor": monitor,
         "fine_tuning_min_improvement": float(min_improvement),
         "fine_tuning_patience": patience,
-        "fine_tuning_last_val_loss": round(best_val_loss if best_epoch > 0 else val_loss, 6),
-        "fine_tuning_last_val_accuracy": round(best_val_accuracy if best_epoch > 0 else val_accuracy, 4),
+        "fine_tuning_last_val_loss": round(best_val_loss, 6),
+        "fine_tuning_last_val_accuracy": round(best_val_accuracy, 4),
+        "fine_tuning_initial_val_accuracy": round(initial_val_accuracy, 4),
+        "fine_tuning_checkpoint_strategy": checkpoint_strategy,
+        "fine_tuning_reverted_to_compressed": reverted_to_compressed,
+        "fine_tuning_learning_rate": float(learning_rate),
         "fine_tuning_max_train_batches_per_epoch": max_train_batches_per_epoch,
         "fine_tuning_max_val_batches_per_epoch": max_val_batches_per_epoch,
     }
@@ -190,20 +262,26 @@ def fine_tune_model(
     batch_size: int = 128,
     dataloader_num_workers: int = 2,
     pin_memory: bool = True,
+    checkpoint_strategy: CheckpointStrategy = "best_val",
+    val_overfit_margin: float = 3.0,
+    val_overfit_ceiling: float = 96.0,
 ) -> Dict[str, float]:
     """
     Fine-tuning after compression.
 
-    - Default (kfold_splits <= 1): single run on the provided train/val loaders,
-      with best-epoch weight restore (standard practice).
+    - Default (kfold_splits <= 1): single run on the provided train/val loaders.
 
     - K-fold (kfold_splits >= 2): runs K folds on the full 50k CIFAR train split
       (requires train_full_aug / train_full_eval from DatasetFactory), each time
       resetting to the same compressed weights, then a short **final** phase on the
-      usual 90/10 train/val loaders so the model matches the non-kfold evaluation
-      pipeline. Final epoch budget is min(config epochs, round(mean best epoch per fold)).
+      usual 90/10 train/val loaders. Final epoch budget is min(config epochs, round(mean best epoch per fold)).
     """
     kfold_splits = max(1, int(kfold_splits))
+    phase_kw = {
+        "checkpoint_strategy": checkpoint_strategy,
+        "val_overfit_margin": val_overfit_margin,
+        "val_overfit_ceiling": val_overfit_ceiling,
+    }
 
     if kfold_splits <= 1:
         out = _fine_tune_one_phase(
@@ -220,6 +298,7 @@ def fine_tune_model(
             max_train_batches_per_epoch=max_train_batches_per_epoch,
             max_val_batches_per_epoch=max_val_batches_per_epoch,
             phase_tag="single",
+            **phase_kw,
         )
         out["fine_tuning_kfold_k"] = 0
         out["fine_tuning_kfold_mean_val_accuracy"] = ""
@@ -281,6 +360,7 @@ def fine_tune_model(
             max_train_batches_per_epoch=max_train_batches_per_epoch,
             max_val_batches_per_epoch=max_val_batches_per_epoch,
             phase_tag=tag,
+            **phase_kw,
         )
         fold_val_accs.append(float(st["fine_tuning_last_val_accuracy"]))
         fold_best_epochs.append(int(st["fine_tuning_best_epoch"]))
@@ -312,6 +392,7 @@ def fine_tune_model(
         max_train_batches_per_epoch=max_train_batches_per_epoch,
         max_val_batches_per_epoch=max_val_batches_per_epoch,
         phase_tag="final (90/10 split)",
+        **phase_kw,
     )
 
     total_time = round(cv_time + float(final_stats["fine_tuning_time_s"]), 4)

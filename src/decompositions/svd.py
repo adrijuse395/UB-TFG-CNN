@@ -52,9 +52,11 @@ class SVDDecomposedLayer(BaseDecomposedLayer):
         # Enforce maximum possible rank given the matrix dimensions
         max_valid_rank = min(out_ch, in_ch * kh * kw)
         
-        # Optional: respect max_rank_compression to avoid param explosion
-        denom = max(1, in_ch + out_ch + kh + kw)
-        max_rank_compression = max(1, int((in_ch * out_ch * kh * kw) / denom))
+        # Cap rank so the decomposed layer is actually smaller than the original.
+        # SVD params = rank * (out_ch + in_ch*kh*kw); original = out_ch * in_ch*kh*kw
+        # Compression holds when: rank < out_ch * in_ch*kh*kw / (out_ch + in_ch*kh*kw)
+        denom = max(1, out_ch + in_ch * kh * kw)
+        max_rank_compression = max(1, int((out_ch * in_ch * kh * kw) / denom))
         
         effective_rank = min(rank, max_valid_rank)
         if effective_rank > max_rank_compression:

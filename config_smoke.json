@@ -1,5 +1,4 @@
 {
-    "run_id": "run_20260514_220155",
     "global_settings": {
         "dataset": "cifar10",
         "model": "vgg11_bn",
@@ -8,20 +7,22 @@
         "num_classes": 10,
         "pretrained": true,
         "fine_tuning": {
-            "epochs": 15,
-            "learning_rate": 0.001,
+            "epochs": 3,
+            "learning_rate": 0.0001,
             "early_stopping": true,
             "patience": 3,
             "min_improvement": 0.1,
             "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 0,
-            "max_val_batches_per_epoch": 0,
-            "kfold": 3,
-            "kfold_seed": 42
+            "max_train_batches_per_epoch": 5,
+            "max_val_batches_per_epoch": 3,
+            "kfold": 1,
+            "kfold_seed": 42,
+            "val_overfit_margin": 5.0,
+            "val_overfit_ceiling": 96.0
         }
     },
     "resource_limits": {
-        "max_rank": 64,
+        "max_rank": 4000,
         "max_batch_size": 256
     },
     "experiments": [
@@ -64,7 +65,7 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0018 | ft",
+            "name": "SVD rank 0019 | ft",
             "method": "SVD",
             "target_layers": [
                 "features.0",
@@ -79,11 +80,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 18,
+            "rank": 19,
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0029 | ft",
+            "name": "SVD rank 0028 | ft",
             "method": "SVD",
             "target_layers": [
                 "features.0",
@@ -98,11 +99,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 29,
+            "rank": 28,
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0044 | ft",
+            "name": "SVD rank 0043 | ft",
             "method": "SVD",
             "target_layers": [
                 "features.0",
@@ -117,7 +118,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 44,
+            "rank": 43,
             "fine_tuning": true
         },
         {
@@ -140,7 +141,7 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0104 | ft",
+            "name": "SVD rank 0102 | ft",
             "method": "SVD",
             "target_layers": [
                 "features.0",
@@ -155,11 +156,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 104,
+            "rank": 102,
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0161 | ft",
+            "name": "SVD rank 0155 | ft",
             "method": "SVD",
             "target_layers": [
                 "features.0",
@@ -174,11 +175,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 161,
+            "rank": 155,
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0247 | ft",
+            "name": "SVD rank 0251 | ft",
             "method": "SVD",
             "target_layers": [
                 "features.0",
@@ -193,7 +194,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 247,
+            "rank": 251,
             "fine_tuning": true
         },
         {
@@ -235,7 +236,7 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0010 | ft",
+            "name": "Tucker rank 0011 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -250,11 +251,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 10,
+            "rank": 11,
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0018 | ft",
+            "name": "Tucker rank 0020 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -269,11 +270,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 18,
+            "rank": 20,
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0029 | ft",
+            "name": "Tucker rank 0035 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -288,11 +289,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 29,
+            "rank": 35,
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0044 | ft",
+            "name": "Tucker rank 0054 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -307,11 +308,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 44,
+            "rank": 54,
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0068 | ft",
+            "name": "Tucker rank 0081 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -326,11 +327,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 68,
+            "rank": 81,
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0104 | ft",
+            "name": "Tucker rank 0118 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -345,11 +346,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 104,
+            "rank": 118,
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0161 | ft",
+            "name": "Tucker rank 0181 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -364,11 +365,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 161,
+            "rank": 181,
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0247 | ft",
+            "name": "Tucker rank 0259 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -383,7 +384,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 247,
+            "rank": 259,
             "fine_tuning": true
         },
         {
@@ -425,7 +426,7 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0010 | ft",
+            "name": "TT rank 0009 | ft",
             "method": "TT",
             "target_layers": [
                 "features.0",
@@ -440,11 +441,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 10,
+            "rank": 9,
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0018 | ft",
+            "name": "TT rank 0017 | ft",
             "method": "TT",
             "target_layers": [
                 "features.0",
@@ -459,11 +460,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 18,
+            "rank": 17,
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0029 | ft",
+            "name": "TT rank 0026 | ft",
             "method": "TT",
             "target_layers": [
                 "features.0",
@@ -478,11 +479,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 29,
+            "rank": 26,
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0044 | ft",
+            "name": "TT rank 0042 | ft",
             "method": "TT",
             "target_layers": [
                 "features.0",
@@ -497,11 +498,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 44,
+            "rank": 42,
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0068 | ft",
+            "name": "TT rank 0064 | ft",
             "method": "TT",
             "target_layers": [
                 "features.0",
@@ -516,11 +517,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 68,
+            "rank": 64,
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0104 | ft",
+            "name": "TT rank 0102 | ft",
             "method": "TT",
             "target_layers": [
                 "features.0",
@@ -535,11 +536,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 104,
+            "rank": 102,
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0161 | ft",
+            "name": "TT rank 0155 | ft",
             "method": "TT",
             "target_layers": [
                 "features.0",
@@ -554,11 +555,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 161,
+            "rank": 155,
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0247 | ft",
+            "name": "TT rank 0249 | ft",
             "method": "TT",
             "target_layers": [
                 "features.0",
@@ -573,7 +574,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 247,
+            "rank": 249,
             "fine_tuning": true
         },
         {
@@ -634,7 +635,7 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0021 | ft",
+            "name": "CP rank 0022 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -649,11 +650,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 21,
+            "rank": 22,
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0040 | ft",
+            "name": "CP rank 0038 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -668,11 +669,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 40,
+            "rank": 38,
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0075 | ft",
+            "name": "CP rank 0070 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -687,11 +688,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 75,
+            "rank": 70,
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0151 | ft",
+            "name": "CP rank 0120 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -706,11 +707,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 151,
+            "rank": 120,
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0283 | ft",
+            "name": "CP rank 0216 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -725,11 +726,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 283,
+            "rank": 216,
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0531 | ft",
+            "name": "CP rank 0366 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -744,11 +745,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 531,
+            "rank": 366,
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0995 | ft",
+            "name": "CP rank 0732 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -763,11 +764,11 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 995,
+            "rank": 732,
             "fine_tuning": true
         },
         {
-            "name": "CP rank 2000 | ft",
+            "name": "CP rank 1500 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -782,7 +783,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 2000,
+            "rank": 1500,
             "fine_tuning": true
         }
     ]

@@ -27,6 +27,10 @@ from src.decompositions.replacer import ModelReplacer
 from src.evaluation.metrics import ModelEvaluator
 from src.models.factory import ModelFactory
 from src.training.fine_tune import fine_tune_model
+from src.training.lr_schedule import (
+    resolve_dynamic_fine_tune_lr,
+    use_high_accuracy_ft_regime,
+)
 from src.utils.config import ConfigParser
 from src.utils.logger import RunLogger
 
@@ -53,6 +57,15 @@ DEFAULT_GLOBAL_FINE_TUNING: Dict[str, Any] = {
     "max_val_batches_per_epoch": 20,
     "kfold": 1,
     "kfold_seed": 42,
+    # LR schedule hyperparameters (piecewise linear → exponential)
+    "ft_lr_max": 1e-3,            # LR at 0% compressed test accuracy (top of linear ramp)
+    "ft_lr_min": 1e-4,            # LR at 100% in the linear segment (before threshold)
+    "ft_high_acc_threshold": 85.0, # Accuracy above which exponential decay kicks in
+    "ft_lr_floor": 1e-6,          # Minimum LR for the exponential segment (at 100% acc)
+    "ft_lr_decay_rate": 6.0,      # Steepness of exponential decay (higher = faster drop)
+    # Overfitting guards for the "final" checkpoint strategy (high-accuracy regime)
+    "val_overfit_margin": 5.0,    # Revert if final_val > pre_ft_val + margin (pp)
+    "val_overfit_ceiling": 96.0,  # Revert if final_val exceeds this absolute ceiling (%)
 }
 
 
@@ -231,7 +244,6 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
         fine_tuning_enabled = bool(exp.get("fine_tuning", exp.get("fine_tunning", False)))
         ft_cfg = _resolved_fine_tuning_settings(global_settings)
         ft_epochs = max(1, int(ft_cfg["epochs"])) if fine_tuning_enabled else 0
-        ft_lr = float(ft_cfg["learning_rate"]) if fine_tuning_enabled else 0.0
         ft_early_stopping = bool(ft_cfg["early_stopping"]) if fine_tuning_enabled else False
         ft_patience = max(1, int(ft_cfg["patience"])) if fine_tuning_enabled else 0
         ft_min_improvement = float(ft_cfg["min_improvement"]) if fine_tuning_enabled else 0.0
@@ -244,6 +256,14 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
         )
         ft_kfold = max(1, int(ft_cfg["kfold"])) if fine_tuning_enabled else 1
         ft_kfold_seed = int(ft_cfg["kfold_seed"]) if fine_tuning_enabled else 42
+        # LR schedule + overfit-guard params (always resolved from merged config)
+        ft_lr_max = float(ft_cfg["ft_lr_max"])
+        ft_lr_min = float(ft_cfg["ft_lr_min"])
+        ft_high_acc_threshold = float(ft_cfg["ft_high_acc_threshold"])
+        ft_lr_floor = float(ft_cfg["ft_lr_floor"])
+        ft_lr_decay_rate = float(ft_cfg["ft_lr_decay_rate"])
+        ft_val_overfit_margin = float(ft_cfg["val_overfit_margin"])
+        ft_val_overfit_ceiling = float(ft_cfg["val_overfit_ceiling"])
 
         if not target_layers:
             print("    [Warning] No target_layers specified. Model unchanged.")
@@ -307,21 +327,37 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
         logger.log_result(compressed_results)
 
         if fine_tuning_enabled:
-            compressed_acc = compressed_results["accuracy"]
-            max_lr = 1e-3
-            min_lr = 1e-4
-            dynamic_lr = min_lr + (max_lr - min_lr) * (1.0 - (compressed_acc / 100.0))
-            dynamic_lr = round(dynamic_lr, 5)
+            compressed_acc = float(compressed_results["accuracy"])
+            dynamic_lr = resolve_dynamic_fine_tune_lr(
+                compressed_acc,
+                lr_max=ft_lr_max,
+                lr_min=ft_lr_min,
+                threshold=ft_high_acc_threshold,
+                lr_floor=ft_lr_floor,
+                decay_rate=ft_lr_decay_rate,
+            )
+            high_acc_regime = use_high_accuracy_ft_regime(compressed_acc, threshold=ft_high_acc_threshold)
+            ft_checkpoint = "final" if high_acc_regime else "best_val"
+            ft_early_stopping_run = ft_early_stopping and not high_acc_regime
 
             print(
                 f"    [FineTuning] global_settings.fine_tuning → "
-                f"epochs={ft_epochs}, lr={dynamic_lr} (dynamic based on {compressed_acc:.2f}% acc), "
-                f"early_stopping={ft_early_stopping}, patience={ft_patience}, "
+                f"epochs={ft_epochs}, lr={dynamic_lr} "
+                f"(compressed test acc={compressed_acc:.2f}%), "
+                f"regime={'high-acc' if high_acc_regime else 'standard'}, "
+                f"checkpoint={ft_checkpoint}, "
+                f"early_stopping={ft_early_stopping_run}, patience={ft_patience}, "
                 f"min_improvement={ft_min_improvement}, monitor={ft_monitor}, "
                 f"max_train_batches={ft_max_train_batches_per_epoch}, "
                 f"max_val_batches={ft_max_val_batches_per_epoch}, kfold={ft_kfold}, "
                 f"kfold_seed={ft_kfold_seed}"
             )
+            if high_acc_regime:
+                print(
+                    f"    [FineTuning] compressed test ≥ {ft_high_acc_threshold:.0f}%: "
+                    "last-epoch weights (no best-val restore); "
+                    "revert to compressed if val overfits."
+                )
             ft_info = fine_tune_model(
                 current_model,
                 train_loader,
@@ -329,7 +365,7 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
                 device=device,
                 epochs=ft_epochs,
                 learning_rate=dynamic_lr,
-                early_stopping=ft_early_stopping,
+                early_stopping=ft_early_stopping_run,
                 patience=ft_patience,
                 min_improvement=ft_min_improvement,
                 monitor=ft_monitor,
@@ -342,6 +378,9 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
                 batch_size=batch_size,
                 dataloader_num_workers=2,
                 pin_memory=True,
+                checkpoint_strategy=ft_checkpoint,
+                val_overfit_margin=ft_val_overfit_margin,
+                val_overfit_ceiling=ft_val_overfit_ceiling,
             )
 
             print("    [FineTuning] Re-evaluating model after fine-tuning...")
