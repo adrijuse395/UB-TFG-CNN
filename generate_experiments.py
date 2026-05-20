@@ -1,21 +1,20 @@
 """
 generate_experiments.py
 
-Generates two experiment config files for VGG11-BN / CIFAR-10:
-  - config_smoke.json  : 10 ranks/method, limited batches — quick pipeline check
-  - config_full.json   : 68 ranks/method, unlimited batches — final experiment
+Generates experiment config files for VGG11-BN / CIFAR-10:
+  - config_smoke.json       : 10 ranks/method, limited batches — quick pipeline check
+  - config_full.json        : 68 ranks/method, unlimited batches — FT experiment
+  - config_full_no_ft.json  : 68 ranks/method, no FT, linearly spaced ranks
 
-Key improvement over the previous version:
-  Ranks are chosen so that the resulting total_parameters values are
-  **evenly distributed on a log scale**.  This guarantees that the
-  accuracy × total_parameters scatter plot has proportionally spaced
-  data points across the entire compression range for every method,
-  instead of a cluster at high rank and a gap in the middle.
+config_full and config_smoke use log-spaced parameters (geomspace) for even
+distribution in accuracy × log(params) plots.
 
-  Technique: target param values are sampled with geomspace, then for
-  each target a binary search finds the integer rank whose analytical
-  parameter count is closest.  Analytical formulas are verified against
-  run_20260515_100131 results (errors < 0.01%).
+config_full_no_ft uses linearly spaced ranks (step = max_rank / 68) which
+produces uniform spacing between points on the accuracy × params plot.
+CP max rank is raised to 2000 to match the parameter range of other methods.
+
+Analytical parameter-count formulas are verified against run_20260515_100131
+results (errors < 0.01%).
 """
 
 import json
@@ -50,14 +49,23 @@ TARGET_LAYERS = [
     "classifier.0", "classifier.3", "classifier.6",
 ]
 
-# Max ranks: SVD/Tucker/TT stay at 400 (near-baseline); CP capped at 1500
-# to keep per-layer compression time ≤ ~200 s (rank 2000 took 317 s).
+# Max ranks for FT configs: SVD/Tucker/TT at 400; CP capped at 1500
+# to keep per-layer compression time ≤ ~200 s (rank 2000 ≈ 317 s/layer).
 METHODS_BOUNDS = [
     # (method, min_rank, max_rank)
     ("SVD",    2,  400),
     ("Tucker", 2,  400),
     ("TT",     2,  400),
     ("CP",     2, 1500),
+]
+
+# Max ranks for the no-FT config: CP raised to 2000 to align param range with
+# SVD/Tucker/TT (at rank 400 those reach ~9 M params; CP needs ~2000 to match).
+METHODS_BOUNDS_NO_FT = [
+    ("SVD",    2,  400),
+    ("Tucker", 2,  400),
+    ("TT",     2,  400),
+    ("CP",     2, 2000),
 ]
 
 
@@ -122,7 +130,7 @@ def total_params(method: str, rank: int) -> int:
 
 
 # ---------------------------------------------------------------------------
-# Parameter-space rank sampling
+# Rank sampling strategies
 # ---------------------------------------------------------------------------
 
 def _closest_rank(method: str, target: float, lo: int, hi: int) -> int:
@@ -178,6 +186,18 @@ def get_param_spaced_ranks(method: str, min_rank: int, max_rank: int, num_sample
     return [pool[i] for i in idxs]
 
 
+def get_linear_spaced_ranks(max_rank: int, num_samples: int) -> list:
+    """
+    Return exactly num_samples integer ranks uniformly spaced in
+    [max_rank/num_samples, max_rank] with step = max_rank / num_samples.
+
+    This produces evenly spaced points on the accuracy × total_parameters
+    plot (since params grow roughly linearly with rank for all four methods).
+    """
+    step = max_rank / num_samples
+    return list(dict.fromkeys(round(step * i) for i in range(1, num_samples + 1)))
+
+
 # ---------------------------------------------------------------------------
 # Config builders
 # ---------------------------------------------------------------------------
@@ -194,9 +214,6 @@ def _fine_tuning_block(epochs: int, max_train_batches: int, max_val_batches: int
         "max_val_batches_per_epoch":   max_val_batches,
         "kfold":                       1,
         "kfold_seed":                  42,
-        # Overfitting guards for the high-accuracy "final" checkpoint regime
-        "val_overfit_margin":  5.0,    # revert if val jumps > pre_ft + 5 pp
-        "val_overfit_ceiling": 96.0,   # revert if val exceeds 96 % absolute
     }
 
 
@@ -234,14 +251,50 @@ def build_config(
     }
 
 
+def build_config_no_ft(num_samples: int) -> dict:
+    """
+    Builds a no-FT experiment config with linearly spaced ranks.
+    Each method gets num_samples ranks from max_rank/num_samples to max_rank.
+    CP max rank is 2000 (vs 1500 in FT configs) to match other methods' param range.
+    """
+    global_settings = {
+        "dataset":     "cifar10",
+        "model":       "vgg11_bn",
+        "batch_size":  128,
+        "use_gpu":     True,
+        "num_classes": 10,
+        "pretrained":  True,
+    }
+
+    experiments = []
+    for method, _min_r, max_r in METHODS_BOUNDS_NO_FT:
+        for r in get_linear_spaced_ranks(max_r, num_samples):
+            experiments.append({
+                "name":          f"{method} rank {r:04d}",
+                "method":        method,
+                "target_layers": TARGET_LAYERS,
+                "rank":          r,
+                "fine_tuning":   False,
+            })
+
+    return {
+        "global_settings": global_settings,
+        "resource_limits": {"max_rank": 4000, "max_batch_size": 256},
+        "experiments":     experiments,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Summary printer
 # ---------------------------------------------------------------------------
 
-def _print_summary(cfg: dict, label: str) -> None:
+def _print_summary(cfg: dict, label: str, bounds=None) -> None:
+    if bounds is None:
+        bounds = METHODS_BOUNDS
     exps     = cfg["experiments"]
     n_json   = len(exps)
-    n_csv    = n_json * 2           # each fine_tuning=True entry → 2 CSV rows
+    has_ft   = any(e.get("fine_tuning") for e in exps)
+    n_csv    = n_json * 2 if has_ft else n_json
     baseline = 9_756_426            # VGG11-BN CIFAR-10 baseline params
 
     print(f"\n{'─'*64}")
@@ -249,7 +302,7 @@ def _print_summary(cfg: dict, label: str) -> None:
     print(f"  {n_json} JSON entries  →  {n_csv} CSV rows")
     print(f"{'─'*64}")
 
-    for method, min_r, max_r in METHODS_BOUNDS:
+    for method, _min_r, max_r in bounds:
         ranks  = [e["rank"]  for e in exps if e["method"] == method]
         params = [total_params(method, r) for r in ranks]
         cr_min = baseline / max(params)
@@ -280,24 +333,28 @@ def main() -> None:
         max_train_batches  = 0,    # 0 = unlimited
         max_val_batches    = 0,
     )
+    no_ft_cfg = build_config_no_ft(num_samples=68)
 
     with open("config_smoke.json", "w") as f:
         json.dump(smoke_cfg, f, indent=4)
     with open("config_full.json", "w") as f:
         json.dump(full_cfg, f, indent=4)
+    with open("config_full_no_ft.json", "w") as f:
+        json.dump(no_ft_cfg, f, indent=4)
 
-    _print_summary(smoke_cfg, "Smoke test   (config_smoke.json)")
-    _print_summary(full_cfg,  "Full experiment  (config_full.json)")
+    _print_summary(smoke_cfg,  "Smoke test          (config_smoke.json)")
+    _print_summary(full_cfg,   "Full FT experiment  (config_full.json)")
+    _print_summary(no_ft_cfg,  "Full no-FT          (config_full_no_ft.json)", bounds=METHODS_BOUNDS_NO_FT)
 
-    # Rough timing estimate for the full experiment
-    full_exps = full_cfg["experiments"]
-    n_cp  = sum(1 for e in full_exps if e["method"] == "CP")
-    n_rest = len(full_exps) - n_cp
-    est_comp  = n_rest * 3 + n_cp * 55     # s — SVD/Tucker/TT ≈3s, CP ≈55s avg
-    est_ft    = len(full_exps) * 75         # s — ~75 s FT per experiment
-    est_total = (est_comp + est_ft) / 3600
-    print(f"  Rough full-experiment estimate: {est_total:.1f} h on Kaggle GPU")
-    print(f"  (CP compression dominates; {n_cp} CP experiments × ~55 s avg)")
+    # Rough timing estimate for the full no-FT experiment
+    no_ft_exps = no_ft_cfg["experiments"]
+    n_cp   = sum(1 for e in no_ft_exps if e["method"] == "CP")
+    n_rest = len(no_ft_exps) - n_cp
+    est_comp  = n_rest * 3 + n_cp * 100   # s — CP rank 2000 ≈ 317 s max, avg ~100 s
+    est_eval  = len(no_ft_exps) * 3       # s — ~3 s test eval per experiment
+    est_total = (est_comp + est_eval) / 3600
+    print(f"  Rough no-FT estimate: {est_total:.1f} h on Kaggle GPU")
+    print(f"  (CP at rank 2000 ≈ 317 s; {n_cp} CP experiments × ~100 s avg)")
     print()
 
 
