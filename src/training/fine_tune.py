@@ -86,9 +86,9 @@ def _fine_tune_one_phase(
     patience = max(1, int(patience))
     epochs = max(1, int(epochs))
     monitor = str(monitor).strip().lower()
-    if monitor not in {"val_accuracy", "val_loss"}:
+    if monitor not in {"val_accuracy", "val_loss", "train_loss"}:
         monitor = "val_accuracy"
-    if checkpoint_strategy not in {"best_val", "final"}:
+    if checkpoint_strategy not in {"best_val", "final", "best_train"}:
         raise ValueError(f"Unknown checkpoint_strategy: {checkpoint_strategy!r}")
 
     if freeze_non_decomposed:
@@ -138,7 +138,12 @@ def _fine_tune_one_phase(
     best_epoch = 0
     best_val_accuracy = initial_val_accuracy
     best_val_loss = initial_val_loss
-    best_score = initial_val_accuracy if monitor == "val_accuracy" else -initial_val_loss
+    if monitor == "val_accuracy":
+        best_score = initial_val_accuracy
+    elif monitor == "train_loss":
+        best_score = float('-inf')
+    else:
+        best_score = -initial_val_loss
 
     total_loss = 0.0
     total_batches = 0
