@@ -7,18 +7,18 @@
         "num_classes": 10,
         "pretrained": true,
         "fine_tuning": {
-            "epochs": 5,
+            "epochs": 3,
             "learning_rate": 0.0001,
             "early_stopping": true,
             "patience": 3,
             "min_improvement": 0.1,
             "monitor": "val_accuracy",
-            "max_train_batches_per_epoch": 0,
+            "max_train_batches_per_epoch": 50,
             "max_val_batches_per_epoch": 0,
             "kfold": 1,
             "kfold_seed": 42,
-            "val_overfit_margin": 5.0,
-            "val_overfit_ceiling": 96.0
+            "checkpoint_strategy": "final",
+            "val_overfit_ceiling": 100.0
         }
     },
     "resource_limits": {
@@ -46,44 +46,6 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0003 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 3,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0004 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 4,
-            "fine_tuning": true
-        },
-        {
             "name": "SVD rank 0005 | ft",
             "method": "SVD",
             "target_layers": [
@@ -103,7 +65,7 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0006 | ft",
+            "name": "SVD rank 0007 | ft",
             "method": "SVD",
             "target_layers": [
                 "features.0",
@@ -118,45 +80,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 6,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0008 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 8,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0009 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 9,
+            "rank": 7,
             "fine_tuning": true
         },
         {
@@ -179,25 +103,6 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0011 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 11,
-            "fine_tuning": true
-        },
-        {
             "name": "SVD rank 0012 | ft",
             "method": "SVD",
             "target_layers": [
@@ -214,44 +119,6 @@
                 "classifier.6"
             ],
             "rank": 12,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0013 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 13,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0014 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 14,
             "fine_tuning": true
         },
         {
@@ -274,25 +141,6 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0017 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 17,
-            "fine_tuning": true
-        },
-        {
             "name": "SVD rank 0018 | ft",
             "method": "SVD",
             "target_layers": [
@@ -309,25 +157,6 @@
                 "classifier.6"
             ],
             "rank": 18,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0019 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 19,
             "fine_tuning": true
         },
         {
@@ -350,44 +179,6 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0021 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 21,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0022 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 22,
-            "fine_tuning": true
-        },
-        {
             "name": "SVD rank 0023 | ft",
             "method": "SVD",
             "target_layers": [
@@ -407,7 +198,7 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0024 | ft",
+            "name": "SVD rank 0026 | ft",
             "method": "SVD",
             "target_layers": [
                 "features.0",
@@ -422,45 +213,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 24,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0027 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 27,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0028 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 28,
+            "rank": 26,
             "fine_tuning": true
         },
         {
@@ -483,25 +236,6 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0031 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 31,
-            "fine_tuning": true
-        },
-        {
             "name": "SVD rank 0033 | ft",
             "method": "SVD",
             "target_layers": [
@@ -518,44 +252,6 @@
                 "classifier.6"
             ],
             "rank": 33,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0035 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 35,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0037 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 37,
             "fine_tuning": true
         },
         {
@@ -578,25 +274,6 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0041 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 41,
-            "fine_tuning": true
-        },
-        {
             "name": "SVD rank 0045 | ft",
             "method": "SVD",
             "target_layers": [
@@ -613,25 +290,6 @@
                 "classifier.6"
             ],
             "rank": 45,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0047 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 47,
             "fine_tuning": true
         },
         {
@@ -654,44 +312,6 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0053 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 53,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0055 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 55,
-            "fine_tuning": true
-        },
-        {
             "name": "SVD rank 0058 | ft",
             "method": "SVD",
             "target_layers": [
@@ -708,25 +328,6 @@
                 "classifier.6"
             ],
             "rank": 58,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0061 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 61,
             "fine_tuning": true
         },
         {
@@ -749,25 +350,6 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0071 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 71,
-            "fine_tuning": true
-        },
-        {
             "name": "SVD rank 0075 | ft",
             "method": "SVD",
             "target_layers": [
@@ -784,44 +366,6 @@
                 "classifier.6"
             ],
             "rank": 75,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0079 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 79,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0083 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 83,
             "fine_tuning": true
         },
         {
@@ -844,25 +388,6 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0092 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 92,
-            "fine_tuning": true
-        },
-        {
             "name": "SVD rank 0097 | ft",
             "method": "SVD",
             "target_layers": [
@@ -882,7 +407,7 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0102 | ft",
+            "name": "SVD rank 0113 | ft",
             "method": "SVD",
             "target_layers": [
                 "features.0",
@@ -897,45 +422,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 102,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0107 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 107,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0119 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 119,
+            "rank": 113,
             "fine_tuning": true
         },
         {
@@ -958,44 +445,6 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0132 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 132,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0139 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 139,
-            "fine_tuning": true
-        },
-        {
             "name": "SVD rank 0147 | ft",
             "method": "SVD",
             "target_layers": [
@@ -1012,25 +461,6 @@
                 "classifier.6"
             ],
             "rank": 147,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0155 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 155,
             "fine_tuning": true
         },
         {
@@ -1053,25 +483,6 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0172 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 172,
-            "fine_tuning": true
-        },
-        {
             "name": "SVD rank 0190 | ft",
             "method": "SVD",
             "target_layers": [
@@ -1088,44 +499,6 @@
                 "classifier.6"
             ],
             "rank": 190,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0200 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 200,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0211 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 211,
             "fine_tuning": true
         },
         {
@@ -1148,25 +521,6 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0236 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 236,
-            "fine_tuning": true
-        },
-        {
             "name": "SVD rank 0251 | ft",
             "method": "SVD",
             "target_layers": [
@@ -1186,7 +540,7 @@
             "fine_tuning": true
         },
         {
-            "name": "SVD rank 0266 | ft",
+            "name": "SVD rank 0300 | ft",
             "method": "SVD",
             "target_layers": [
                 "features.0",
@@ -1201,45 +555,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 266,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0283 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 283,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0318 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 318,
+            "rank": 300,
             "fine_tuning": true
         },
         {
@@ -1259,44 +575,6 @@
                 "classifier.6"
             ],
             "rank": 337,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0357 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 357,
-            "fine_tuning": true
-        },
-        {
-            "name": "SVD rank 0378 | ft",
-            "method": "SVD",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 378,
             "fine_tuning": true
         },
         {
@@ -1338,7 +616,7 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0003 | ft",
+            "name": "Tucker rank 0005 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -1353,64 +631,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 3,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0004 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 4,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0006 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 6,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0007 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 7,
+            "rank": 5,
             "fine_tuning": true
         },
         {
@@ -1433,25 +654,6 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0009 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 9,
-            "fine_tuning": true
-        },
-        {
             "name": "Tucker rank 0011 | ft",
             "method": "Tucker",
             "target_layers": [
@@ -1468,25 +670,6 @@
                 "classifier.6"
             ],
             "rank": 11,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0012 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 12,
             "fine_tuning": true
         },
         {
@@ -1509,25 +692,6 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0014 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 14,
-            "fine_tuning": true
-        },
-        {
             "name": "Tucker rank 0016 | ft",
             "method": "Tucker",
             "target_layers": [
@@ -1544,44 +708,6 @@
                 "classifier.6"
             ],
             "rank": 16,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0017 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 17,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0018 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 18,
             "fine_tuning": true
         },
         {
@@ -1604,25 +730,6 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0022 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 22,
-            "fine_tuning": true
-        },
-        {
             "name": "Tucker rank 0023 | ft",
             "method": "Tucker",
             "target_layers": [
@@ -1642,7 +749,7 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0024 | ft",
+            "name": "Tucker rank 0027 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -1657,64 +764,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 24,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0025 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 25,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0028 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 28,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0030 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 30,
+            "rank": 27,
             "fine_tuning": true
         },
         {
@@ -1737,7 +787,7 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0033 | ft",
+            "name": "Tucker rank 0037 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -1752,45 +802,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 33,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0035 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 35,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0038 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 38,
+            "rank": 37,
             "fine_tuning": true
         },
         {
@@ -1813,7 +825,7 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0042 | ft",
+            "name": "Tucker rank 0047 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -1828,64 +840,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 42,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0044 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 44,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0049 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 49,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0051 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 51,
+            "rank": 47,
             "fine_tuning": true
         },
         {
@@ -1908,25 +863,6 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0056 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 56,
-            "fine_tuning": true
-        },
-        {
             "name": "Tucker rank 0061 | ft",
             "method": "Tucker",
             "target_layers": [
@@ -1943,44 +879,6 @@
                 "classifier.6"
             ],
             "rank": 61,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0064 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 64,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0067 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 67,
             "fine_tuning": true
         },
         {
@@ -2003,25 +901,6 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0077 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 77,
-            "fine_tuning": true
-        },
-        {
             "name": "Tucker rank 0081 | ft",
             "method": "Tucker",
             "target_layers": [
@@ -2041,7 +920,7 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0084 | ft",
+            "name": "Tucker rank 0092 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -2056,64 +935,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 84,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0088 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 88,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0096 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 96,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0100 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 100,
+            "rank": 92,
             "fine_tuning": true
         },
         {
@@ -2136,7 +958,7 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0109 | ft",
+            "name": "Tucker rank 0114 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -2151,45 +973,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 109,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0118 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 118,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0123 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 123,
+            "rank": 114,
             "fine_tuning": true
         },
         {
@@ -2212,7 +996,7 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0134 | ft",
+            "name": "Tucker rank 0147 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -2227,64 +1011,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 134,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0140 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 140,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0153 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 153,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0160 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 160,
+            "rank": 147,
             "fine_tuning": true
         },
         {
@@ -2307,25 +1034,6 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0174 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 174,
-            "fine_tuning": true
-        },
-        {
             "name": "Tucker rank 0188 | ft",
             "method": "Tucker",
             "target_layers": [
@@ -2342,44 +1050,6 @@
                 "classifier.6"
             ],
             "rank": 188,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0196 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 196,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0204 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 204,
             "fine_tuning": true
         },
         {
@@ -2402,25 +1072,6 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0230 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 230,
-            "fine_tuning": true
-        },
-        {
             "name": "Tucker rank 0239 | ft",
             "method": "Tucker",
             "target_layers": [
@@ -2437,25 +1088,6 @@
                 "classifier.6"
             ],
             "rank": 239,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0248 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 248,
             "fine_tuning": true
         },
         {
@@ -2478,25 +1110,6 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0288 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 288,
-            "fine_tuning": true
-        },
-        {
             "name": "Tucker rank 0302 | ft",
             "method": "Tucker",
             "target_layers": [
@@ -2516,7 +1129,7 @@
             "fine_tuning": true
         },
         {
-            "name": "Tucker rank 0318 | ft",
+            "name": "Tucker rank 0349 | ft",
             "method": "Tucker",
             "target_layers": [
                 "features.0",
@@ -2531,64 +1144,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 318,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0333 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 333,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0366 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 366,
-            "fine_tuning": true
-        },
-        {
-            "name": "Tucker rank 0383 | ft",
-            "method": "Tucker",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 383,
+            "rank": 349,
             "fine_tuning": true
         },
         {
@@ -2630,25 +1186,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0003 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 3,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0004 | ft",
             "method": "TT",
             "target_layers": [
@@ -2665,44 +1202,6 @@
                 "classifier.6"
             ],
             "rank": 4,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0005 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 5,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0006 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 6,
             "fine_tuning": true
         },
         {
@@ -2725,25 +1224,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0008 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 8,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0009 | ft",
             "method": "TT",
             "target_layers": [
@@ -2760,25 +1240,6 @@
                 "classifier.6"
             ],
             "rank": 9,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0010 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 10,
             "fine_tuning": true
         },
         {
@@ -2801,44 +1262,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0012 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 12,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0013 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 13,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0014 | ft",
             "method": "TT",
             "target_layers": [
@@ -2855,25 +1278,6 @@
                 "classifier.6"
             ],
             "rank": 14,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0015 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 15,
             "fine_tuning": true
         },
         {
@@ -2896,25 +1300,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0017 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 17,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0018 | ft",
             "method": "TT",
             "target_layers": [
@@ -2931,25 +1316,6 @@
                 "classifier.6"
             ],
             "rank": 18,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0020 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 20,
             "fine_tuning": true
         },
         {
@@ -2972,44 +1338,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0022 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 22,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0023 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 23,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0025 | ft",
             "method": "TT",
             "target_layers": [
@@ -3026,25 +1354,6 @@
                 "classifier.6"
             ],
             "rank": 25,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0026 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 26,
             "fine_tuning": true
         },
         {
@@ -3067,25 +1376,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0030 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 30,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0031 | ft",
             "method": "TT",
             "target_layers": [
@@ -3102,44 +1392,6 @@
                 "classifier.6"
             ],
             "rank": 31,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0033 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 33,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0035 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 35,
             "fine_tuning": true
         },
         {
@@ -3162,25 +1414,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0040 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 40,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0042 | ft",
             "method": "TT",
             "target_layers": [
@@ -3197,25 +1430,6 @@
                 "classifier.6"
             ],
             "rank": 42,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0045 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 45,
             "fine_tuning": true
         },
         {
@@ -3238,44 +1452,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0050 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 50,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0054 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 54,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0057 | ft",
             "method": "TT",
             "target_layers": [
@@ -3292,25 +1468,6 @@
                 "classifier.6"
             ],
             "rank": 57,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0060 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 60,
             "fine_tuning": true
         },
         {
@@ -3333,25 +1490,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0068 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 68,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0072 | ft",
             "method": "TT",
             "target_layers": [
@@ -3368,44 +1506,6 @@
                 "classifier.6"
             ],
             "rank": 72,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0076 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 76,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0081 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 81,
             "fine_tuning": true
         },
         {
@@ -3428,25 +1528,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0091 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 91,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0096 | ft",
             "method": "TT",
             "target_layers": [
@@ -3463,25 +1544,6 @@
                 "classifier.6"
             ],
             "rank": 96,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0102 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 102,
             "fine_tuning": true
         },
         {
@@ -3504,44 +1566,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0115 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 115,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0122 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 122,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0129 | ft",
             "method": "TT",
             "target_layers": [
@@ -3558,25 +1582,6 @@
                 "classifier.6"
             ],
             "rank": 129,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0137 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 137,
             "fine_tuning": true
         },
         {
@@ -3599,25 +1604,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0155 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 155,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0164 | ft",
             "method": "TT",
             "target_layers": [
@@ -3634,25 +1620,6 @@
                 "classifier.6"
             ],
             "rank": 164,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0174 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 174,
             "fine_tuning": true
         },
         {
@@ -3675,44 +1642,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0196 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 196,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0208 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 208,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0221 | ft",
             "method": "TT",
             "target_layers": [
@@ -3729,25 +1658,6 @@
                 "classifier.6"
             ],
             "rank": 221,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0235 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 235,
             "fine_tuning": true
         },
         {
@@ -3770,25 +1680,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0266 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 266,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0285 | ft",
             "method": "TT",
             "target_layers": [
@@ -3808,44 +1699,6 @@
             "fine_tuning": true
         },
         {
-            "name": "TT rank 0305 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 305,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0327 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 327,
-            "fine_tuning": true
-        },
-        {
             "name": "TT rank 0350 | ft",
             "method": "TT",
             "target_layers": [
@@ -3862,25 +1715,6 @@
                 "classifier.6"
             ],
             "rank": 350,
-            "fine_tuning": true
-        },
-        {
-            "name": "TT rank 0374 | ft",
-            "method": "TT",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 374,
             "fine_tuning": true
         },
         {
@@ -3922,25 +1756,6 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0003 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 3,
-            "fine_tuning": true
-        },
-        {
             "name": "CP rank 0005 | ft",
             "method": "CP",
             "target_layers": [
@@ -3957,44 +1772,6 @@
                 "classifier.6"
             ],
             "rank": 5,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0006 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 6,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0007 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 7,
             "fine_tuning": true
         },
         {
@@ -4017,25 +1794,6 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0010 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 10,
-            "fine_tuning": true
-        },
-        {
             "name": "CP rank 0011 | ft",
             "method": "CP",
             "target_layers": [
@@ -4055,7 +1813,7 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0012 | ft",
+            "name": "CP rank 0014 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -4070,64 +1828,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 12,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0013 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 13,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0015 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 15,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0016 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 16,
+            "rank": 14,
             "fine_tuning": true
         },
         {
@@ -4150,25 +1851,6 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0018 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 18,
-            "fine_tuning": true
-        },
-        {
             "name": "CP rank 0020 | ft",
             "method": "CP",
             "target_layers": [
@@ -4188,7 +1870,7 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0022 | ft",
+            "name": "CP rank 0025 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -4203,45 +1885,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 22,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0023 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 23,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0026 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 26,
+            "rank": 25,
             "fine_tuning": true
         },
         {
@@ -4264,7 +1908,7 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0030 | ft",
+            "name": "CP rank 0034 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -4279,64 +1923,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 30,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0032 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 32,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0036 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 36,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0038 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 38,
+            "rank": 34,
             "fine_tuning": true
         },
         {
@@ -4359,25 +1946,6 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0043 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 43,
-            "fine_tuning": true
-        },
-        {
             "name": "CP rank 0049 | ft",
             "method": "CP",
             "target_layers": [
@@ -4397,7 +1965,7 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0052 | ft",
+            "name": "CP rank 0058 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -4412,64 +1980,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 52,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0055 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 55,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0062 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 62,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0066 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 66,
+            "rank": 58,
             "fine_tuning": true
         },
         {
@@ -4492,25 +2003,6 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0074 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 74,
-            "fine_tuning": true
-        },
-        {
             "name": "CP rank 0084 | ft",
             "method": "CP",
             "target_layers": [
@@ -4527,44 +2019,6 @@
                 "classifier.6"
             ],
             "rank": 84,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0089 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 89,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0094 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 94,
             "fine_tuning": true
         },
         {
@@ -4587,25 +2041,6 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0113 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 113,
-            "fine_tuning": true
-        },
-        {
             "name": "CP rank 0120 | ft",
             "method": "CP",
             "target_layers": [
@@ -4625,7 +2060,7 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0127 | ft",
+            "name": "CP rank 0143 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -4640,64 +2075,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 127,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0135 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 135,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0152 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 152,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0161 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 161,
+            "rank": 143,
             "fine_tuning": true
         },
         {
@@ -4720,25 +2098,6 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0192 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 192,
-            "fine_tuning": true
-        },
-        {
             "name": "CP rank 0204 | ft",
             "method": "CP",
             "target_layers": [
@@ -4758,7 +2117,7 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0216 | ft",
+            "name": "CP rank 0243 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -4773,64 +2132,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 216,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0229 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 229,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0258 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 258,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0273 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 273,
+            "rank": 243,
             "fine_tuning": true
         },
         {
@@ -4853,7 +2155,7 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0307 | ft",
+            "name": "CP rank 0326 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -4868,45 +2170,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 307,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0345 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 345,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0366 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 366,
+            "rank": 326,
             "fine_tuning": true
         },
         {
@@ -4929,25 +2193,6 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0438 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 438,
-            "fine_tuning": true
-        },
-        {
             "name": "CP rank 0465 | ft",
             "method": "CP",
             "target_layers": [
@@ -4967,7 +2212,7 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0494 | ft",
+            "name": "CP rank 0576 | ft",
             "method": "CP",
             "target_layers": [
                 "features.0",
@@ -4982,64 +2227,7 @@
                 "classifier.3",
                 "classifier.6"
             ],
-            "rank": 494,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0530 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 530,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0625 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 625,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 0677 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 677,
+            "rank": 576,
             "fine_tuning": true
         },
         {
@@ -5062,25 +2250,6 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0793 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 793,
-            "fine_tuning": true
-        },
-        {
             "name": "CP rank 0931 | ft",
             "method": "CP",
             "target_layers": [
@@ -5100,44 +2269,6 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 1006 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 1006,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 1086 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 1086,
-            "fine_tuning": true
-        },
-        {
             "name": "CP rank 1176 | ft",
             "method": "CP",
             "target_layers": [
@@ -5154,25 +2285,6 @@
                 "classifier.6"
             ],
             "rank": 1176,
-            "fine_tuning": true
-        },
-        {
-            "name": "CP rank 1386 | ft",
-            "method": "CP",
-            "target_layers": [
-                "features.0",
-                "features.4",
-                "features.8",
-                "features.11",
-                "features.15",
-                "features.18",
-                "features.22",
-                "features.25",
-                "classifier.0",
-                "classifier.3",
-                "classifier.6"
-            ],
-            "rank": 1386,
             "fine_tuning": true
         },
         {

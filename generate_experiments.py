@@ -214,6 +214,8 @@ def _fine_tuning_block(epochs: int, max_train_batches: int, max_val_batches: int
         "max_val_batches_per_epoch":   max_val_batches,
         "kfold":                       1,
         "kfold_seed":                  42,
+        "checkpoint_strategy":         "final",
+        "val_overfit_ceiling":         100.0,
     }
 
 
@@ -328,9 +330,9 @@ def main() -> None:
         max_val_batches    = 3,
     )
     full_cfg = build_config(
-        num_samples        = 68,
-        ft_epochs          = 5,
-        max_train_batches  = 0,    # 0 = unlimited
+        num_samples        = 30,
+        ft_epochs          = 3,
+        max_train_batches  = 50,    # 50 batches * 128 = 6400 samples/epoch (much faster)
         max_val_batches    = 0,
     )
     no_ft_cfg = build_config_no_ft(num_samples=68)

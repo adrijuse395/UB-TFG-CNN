@@ -60,6 +60,9 @@ DEFAULT_GLOBAL_FINE_TUNING: Dict[str, Any] = {
     "ft_high_acc_threshold": 85.0, # Accuracy above which exponential decay kicks in
     "ft_lr_floor": 1e-6,          # Minimum LR for the exponential segment (at 100% acc)
     "ft_lr_decay_rate": 6.0,      # Steepness of exponential decay (higher = faster drop)
+    "freeze_non_decomposed": False, # Whether to freeze non-decomposed layers during FT
+    "checkpoint_strategy": "best_val", # 'best_val' or 'final'
+    "val_overfit_ceiling": 100.0, # Set to 100 to prevent reverting on leaked validation sets
 }
 
 
@@ -256,6 +259,9 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
         ft_high_acc_threshold = float(ft_cfg["ft_high_acc_threshold"])
         ft_lr_floor = float(ft_cfg["ft_lr_floor"])
         ft_lr_decay_rate = float(ft_cfg["ft_lr_decay_rate"])
+        ft_freeze_non_decomposed = bool(ft_cfg.get("freeze_non_decomposed", False))
+        ft_checkpoint_strategy = str(ft_cfg.get("checkpoint_strategy", "best_val"))
+        ft_val_overfit_ceiling = float(ft_cfg.get("val_overfit_ceiling", 100.0))
 
         if not target_layers:
             print("    [Warning] No target_layers specified. Model unchanged.")
@@ -339,7 +345,8 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
                 f"min_improvement={ft_min_improvement}, monitor={ft_monitor}, "
                 f"max_train_batches={ft_max_train_batches_per_epoch}, "
                 f"max_val_batches={ft_max_val_batches_per_epoch}, kfold={ft_kfold}, "
-                f"kfold_seed={ft_kfold_seed}"
+                f"kfold_seed={ft_kfold_seed}, freeze_non_decomposed={ft_freeze_non_decomposed}, "
+                f"checkpoint_strategy={ft_checkpoint_strategy}, val_overfit_ceiling={ft_val_overfit_ceiling}"
             )
             ft_info = fine_tune_model(
                 current_model,
@@ -361,7 +368,9 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
                 batch_size=batch_size,
                 dataloader_num_workers=2,
                 pin_memory=True,
-                checkpoint_strategy="best_val",
+                checkpoint_strategy=ft_checkpoint_strategy,
+                val_overfit_ceiling=ft_val_overfit_ceiling,
+                freeze_non_decomposed=ft_freeze_non_decomposed,
             )
 
             gc.collect()

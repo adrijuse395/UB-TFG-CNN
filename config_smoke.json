@@ -17,8 +17,8 @@
             "max_val_batches_per_epoch": 3,
             "kfold": 1,
             "kfold_seed": 42,
-            "val_overfit_margin": 5.0,
-            "val_overfit_ceiling": 96.0
+            "checkpoint_strategy": "final",
+            "val_overfit_ceiling": 100.0
         }
     },
     "resource_limits": {

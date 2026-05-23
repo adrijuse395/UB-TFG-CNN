@@ -69,6 +69,8 @@ def _fine_tune_one_phase(
     checkpoint_strategy: CheckpointStrategy = "best_val",
     val_overfit_margin: float = 3.0,
     val_overfit_ceiling: float = 96.0,
+    freeze_non_decomposed: bool = True,
+    weight_decay: float = 1e-4,
 ) -> Dict[str, float]:
     """
     One fine-tuning run with Adam.
@@ -89,8 +91,32 @@ def _fine_tune_one_phase(
     if checkpoint_strategy not in {"best_val", "final"}:
         raise ValueError(f"Unknown checkpoint_strategy: {checkpoint_strategy!r}")
 
+    if freeze_non_decomposed:
+        try:
+            from src.decompositions.base import BaseDecomposedLayer
+            for param in model.parameters():
+                param.requires_grad = False
+            for m in model.modules():
+                if isinstance(m, BaseDecomposedLayer):
+                    for param in m.parameters():
+                        param.requires_grad = True
+        except ImportError:
+            pass
+
+    trainable_params = [p for p in model.parameters() if p.requires_grad]
+    if not trainable_params:
+        trainable_params = model.parameters()
+
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.Adam(trainable_params, lr=learning_rate, weight_decay=weight_decay)
+    
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode='max' if monitor == 'val_accuracy' else 'min',
+        factor=0.5,
+        patience=max(1, patience // 2),
+        min_lr=1e-6
+    )
 
     prefix = f"    [FineTuning{f' · {phase_tag}' if phase_tag else ''}] "
 
@@ -156,6 +182,9 @@ def _fine_tune_one_phase(
             max_batches=max_val_batches_per_epoch,
         )
         print(f"{prefix}          val_loss={val_loss:.4f} val_accuracy={val_accuracy:.2f}%")
+        
+        current_val_score = val_accuracy if monitor == "val_accuracy" else val_loss
+        scheduler.step(current_val_score)
 
         if checkpoint_strategy == "best_val":
             current_score = val_accuracy if monitor == "val_accuracy" else -val_loss
@@ -265,6 +294,8 @@ def fine_tune_model(
     checkpoint_strategy: CheckpointStrategy = "best_val",
     val_overfit_margin: float = 3.0,
     val_overfit_ceiling: float = 96.0,
+    freeze_non_decomposed: bool = True,
+    weight_decay: float = 1e-4,
 ) -> Dict[str, float]:
     """
     Fine-tuning after compression.
@@ -281,6 +312,8 @@ def fine_tune_model(
         "checkpoint_strategy": checkpoint_strategy,
         "val_overfit_margin": val_overfit_margin,
         "val_overfit_ceiling": val_overfit_ceiling,
+        "freeze_non_decomposed": freeze_non_decomposed,
+        "weight_decay": weight_decay,
     }
 
     if kfold_splits <= 1:
