@@ -208,13 +208,13 @@ def _fine_tuning_block(epochs: int, max_train_batches: int, max_val_batches: int
         "learning_rate":               1e-4,   # unused (dynamic LR takes over)
         "early_stopping":              True,
         "patience":                    3,
-        "min_improvement":             0.1,
-        "monitor":                     "val_accuracy",
+        "min_improvement":             0.01,   # 0.01 reduction in train loss
+        "monitor":                     "train_loss",
         "max_train_batches_per_epoch": max_train_batches,
         "max_val_batches_per_epoch":   max_val_batches,
         "kfold":                       1,
         "kfold_seed":                  42,
-        "checkpoint_strategy":         "final",
+        "checkpoint_strategy":         "best_train",
         "val_overfit_ceiling":         100.0,
     }
 
@@ -331,9 +331,9 @@ def main() -> None:
     )
     full_cfg = build_config(
         num_samples        = 30,
-        ft_epochs          = 3,
-        max_train_batches  = 50,    # 50 batches * 128 = 6400 samples/epoch (much faster)
-        max_val_batches    = 0,
+        ft_epochs          = 10,
+        max_train_batches  = 50,    # 50 batches * 128 = 6400 samples/epoch
+        max_val_batches    = 1,     # only 1 batch to print a rough val accuracy very fast
     )
     no_ft_cfg = build_config_no_ft(num_samples=68)
 

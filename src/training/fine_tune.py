@@ -183,11 +183,23 @@ def _fine_tune_one_phase(
         )
         print(f"{prefix}          val_loss={val_loss:.4f} val_accuracy={val_accuracy:.2f}%")
         
-        current_val_score = val_accuracy if monitor == "val_accuracy" else val_loss
+        if monitor == "val_accuracy":
+            current_val_score = val_accuracy
+        elif monitor == "train_loss":
+            current_val_score = mean_epoch_loss
+        else:
+            current_val_score = val_loss
+            
         scheduler.step(current_val_score)
 
-        if checkpoint_strategy == "best_val":
-            current_score = val_accuracy if monitor == "val_accuracy" else -val_loss
+        if checkpoint_strategy in ["best_val", "best_train"]:
+            if monitor == "val_accuracy":
+                current_score = val_accuracy
+            elif monitor == "train_loss":
+                current_score = -mean_epoch_loss  # negative because higher is better for current_score logic
+            else:
+                current_score = -val_loss
+                
             if current_score > (best_score + min_improvement):
                 best_score = current_score
                 best_epoch = epoch + 1
@@ -206,16 +218,17 @@ def _fine_tune_one_phase(
                 )
                 break
 
-    if checkpoint_strategy == "best_val":
+    if checkpoint_strategy in ["best_val", "best_train"]:
         _load_state_dict_from_cpu(model, best_state_cpu, device)
         if best_epoch == 0:
-            print(f"{prefix}Restored compressed weights (no val improvement over pre-FT).")
+            print(f"{prefix}Restored compressed weights (no improvement over pre-FT).")
         else:
             print(
-                f"{prefix}Restored best checkpoint (epoch {best_epoch}, monitor={monitor}, "
-                f"val_accuracy={best_val_accuracy:.2f}%)."
+                f"{prefix}Restored best checkpoint (epoch {best_epoch}, monitor={monitor})."
             )
     else:
+        # checkpoint_strategy == "final"
+        # We simply keep the weights from the last epoch.
         final_val_loss, final_val_accuracy = _evaluate_validation(
             model,
             val_loader,
@@ -227,25 +240,10 @@ def _fine_tune_one_phase(
         best_val_accuracy = final_val_accuracy
         best_epoch = last_epoch
 
-        overfit = final_val_accuracy > (initial_val_accuracy + val_overfit_margin) or (
-            final_val_accuracy > val_overfit_ceiling
+        print(
+            f"{prefix}Keeping last-epoch weights "
+            f"(final val_accuracy={final_val_accuracy:.2f}%)."
         )
-        if overfit:
-            _load_state_dict_from_cpu(model, compressed_state_cpu, device)
-            reverted_to_compressed = 1
-            best_epoch = 0
-            best_val_accuracy = initial_val_accuracy
-            best_val_loss = initial_val_loss
-            print(
-                f"{prefix}Validation overfit detected "
-                f"(final={final_val_accuracy:.2f}% vs pre-FT={initial_val_accuracy:.2f}%) "
-                f"→ reverted to compressed weights."
-            )
-        else:
-            print(
-                f"{prefix}Keeping last-epoch weights "
-                f"(final val_accuracy={final_val_accuracy:.2f}%)."
-            )
 
     if is_cuda:
         torch.cuda.synchronize()

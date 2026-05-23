@@ -11,13 +11,13 @@
             "learning_rate": 0.0001,
             "early_stopping": true,
             "patience": 3,
-            "min_improvement": 0.1,
-            "monitor": "val_accuracy",
+            "min_improvement": 0.01,
+            "monitor": "train_loss",
             "max_train_batches_per_epoch": 5,
             "max_val_batches_per_epoch": 3,
             "kfold": 1,
             "kfold_seed": 42,
-            "checkpoint_strategy": "final",
+            "checkpoint_strategy": "best_train",
             "val_overfit_ceiling": 100.0
         }
     },
