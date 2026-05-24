@@ -60,15 +60,15 @@ def main():
     del base_model
     torch.cuda.empty_cache()
     
-    configs = [
-        ("SVD", rank, {}) for rank in [5, 10, 15, 20, 30, 50]
-    ] + [
-        ("Tucker", rank, {}) for rank in [0.05, 0.1, 0.2, 0.3, 0.4, 0.5]
-    ] + [
-        ("TT", rank, {}) for rank in [5, 10, 15, 20, 30, 50]
-    ] + [
-        ("CP", rank, {"cp_parafac_on_cpu": True}) for rank in [5, 10, 15, 20, 30, 50]
-    ]
+    svd_ranks = [2, 5, 7, 10, 12, 15, 18, 20, 23, 26, 30, 33, 39, 45, 50, 58, 64, 75, 88, 97, 113, 126, 147, 163, 190, 223, 251, 300, 337, 400]
+    tucker_ranks = [2, 5, 8, 11, 13, 16, 19, 23, 27, 31, 37, 40, 47, 54, 61, 70, 81, 92, 104, 114, 128, 147, 167, 188, 213, 239, 259, 302, 349, 400]
+    tt_ranks = [2, 4, 7, 9, 11, 14, 16, 18, 21, 25, 28, 31, 38, 42, 48, 57, 64, 72, 86, 96, 108, 129, 146, 164, 185, 221, 249, 285, 350, 400]
+    cp_ranks = [2, 5, 8, 11, 14, 17, 20, 25, 28, 34, 40, 49, 58, 70, 84, 100, 120, 143, 171, 204, 243, 290, 326, 389, 465, 576, 732, 931, 1176, 1500]
+    
+    configs = [("SVD", r, {}) for r in svd_ranks] + \
+              [("Tucker", r, {}) for r in tucker_ranks] + \
+              [("TT", r, {}) for r in tt_ranks] + \
+              [("CP", r, {"cp_parafac_on_cpu": True}) for r in cp_ranks]
     
     for algo, rank, kwargs in configs:
         print(f"Compressing with {algo} (rank={rank})...")
