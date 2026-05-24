@@ -32,12 +32,17 @@ ALGO_COLORS = {
 
 fig, ax = plt.subplots(figsize=(10, 6))
 
-for method in df["method"].unique():
-    g = df[df["method"] == method].sort_values("batch_size")
-    color = ALGO_COLORS.get(method, "gray")
-    ls = "-" if method == "Baseline" else "--"
-    lw = 2.8 if method == "Baseline" else 2.0
-    ax.plot(g["batch_size"], g["peak_inference_memory_mb"], marker='o', color=color, linestyle=ls, linewidth=lw, label=method)
+sns.lineplot(
+    data=df, 
+    x="batch_size", 
+    y="peak_inference_memory_mb", 
+    hue="method", 
+    palette=ALGO_COLORS,
+    marker="o", 
+    linewidth=2.5,
+    errorbar="sd",  # Shows standard deviation across different ranks
+    ax=ax
+)
 
 ax.set_xscale("log", base=2)
 ax.set_xticks([1, 2, 4, 8, 16, 32, 64, 128])

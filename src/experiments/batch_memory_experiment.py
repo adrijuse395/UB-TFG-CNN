@@ -61,10 +61,13 @@ def main():
     torch.cuda.empty_cache()
     
     configs = [
-        ("SVD", 15, {}),
-        ("Tucker", 15, {}),
-        ("TT", 15, {}),
-        ("CP", 15, {"cp_parafac_on_cpu": True})
+        ("SVD", rank, {}) for rank in [5, 10, 15, 20, 30, 50]
+    ] + [
+        ("Tucker", rank, {}) for rank in [0.05, 0.1, 0.2, 0.3, 0.4, 0.5]
+    ] + [
+        ("TT", rank, {}) for rank in [5, 10, 15, 20, 30, 50]
+    ] + [
+        ("CP", rank, {"cp_parafac_on_cpu": True}) for rank in [5, 10, 15, 20, 30, 50]
     ]
     
     for algo, rank, kwargs in configs:
