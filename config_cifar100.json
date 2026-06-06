@@ -1,10 +1,10 @@
 {
     "global_settings": {
-        "dataset": "cifar10",
+        "dataset": "cifar100",
         "model": "vgg11_bn",
         "batch_size": 128,
         "use_gpu": true,
-        "num_classes": 10,
+        "num_classes": 100,
         "pretrained": true,
         "fine_tuning": {
             "epochs": 10,

@@ -183,7 +183,7 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
         dataset_name=dataset_name,
         batch_size=batch_size,
     )
-    input_shape = (1, 3, 32, 32) if dataset_name == "cifar10" else (1, 3, 224, 224)
+    input_shape = (1, 3, 32, 32) if dataset_name in ("cifar10", "cifar100") else (1, 3, 224, 224)
 
     model_name = global_settings.get("model", "vgg11_bn")
     num_classes = 10 if dataset_name == "cifar10" else global_settings.get("num_classes", 10)

@@ -1,0 +1,182 @@
+{
+    "global_settings": {
+        "dataset": "cifar100",
+        "model": "vgg11_bn",
+        "batch_size": 32,
+        "use_gpu": false,
+        "num_classes": 100,
+        "pretrained": true,
+        "fine_tuning": {
+            "epochs": 10,
+            "learning_rate": 0.0001,
+            "early_stopping": true,
+            "patience": 3,
+            "min_improvement": 0.01,
+            "monitor": "train_loss",
+            "max_train_batches_per_epoch": 50,
+            "max_val_batches_per_epoch": 1,
+            "kfold": 1,
+            "kfold_seed": 42,
+            "checkpoint_strategy": "best_train",
+            "val_overfit_ceiling": 100.0
+        }
+    },
+    "resource_limits": {
+        "max_rank": 4000,
+        "max_batch_size": 256
+    },
+    "experiments": [
+        {
+            "name": "SVD rank 0002 | ft",
+            "method": "SVD",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3",
+                "classifier.6"
+            ],
+            "rank": 2,
+            "fine_tuning": false
+        },
+        {
+            "name": "SVD rank 0005 | ft",
+            "method": "SVD",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3",
+                "classifier.6"
+            ],
+            "rank": 5,
+            "fine_tuning": false
+        },
+        {
+            "name": "Tucker rank 0002 | ft",
+            "method": "Tucker",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3",
+                "classifier.6"
+            ],
+            "rank": 2,
+            "fine_tuning": false
+        },
+        {
+            "name": "Tucker rank 0005 | ft",
+            "method": "Tucker",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3",
+                "classifier.6"
+            ],
+            "rank": 5,
+            "fine_tuning": false
+        },
+        {
+            "name": "TT rank 0002 | ft",
+            "method": "TT",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3",
+                "classifier.6"
+            ],
+            "rank": 2,
+            "fine_tuning": false
+        },
+        {
+            "name": "TT rank 0004 | ft",
+            "method": "TT",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3",
+                "classifier.6"
+            ],
+            "rank": 4,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 0002 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3",
+                "classifier.6"
+            ],
+            "rank": 2,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 0005 | ft",
+            "method": "CP",
+            "target_layers": [
+                "features.0",
+                "features.4",
+                "features.8",
+                "features.11",
+                "features.15",
+                "features.18",
+                "features.22",
+                "features.25",
+                "classifier.0",
+                "classifier.3",
+                "classifier.6"
+            ],
+            "rank": 5,
+            "fine_tuning": false
+        }
+    ]
+}
