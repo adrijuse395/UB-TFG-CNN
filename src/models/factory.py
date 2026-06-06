@@ -14,6 +14,7 @@ from .registry import get_definition
 
 # Side-effect imports: populate registry
 from . import resnet18  # noqa: F401
+from . import resnet20  # noqa: F401
 from . import vgg11_bn  # noqa: F401
 
 
