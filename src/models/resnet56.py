@@ -19,12 +19,21 @@ class ResNet56Definition(ModelDefinition):
         if pretrained and hub_model is not None:
             print(f"       [ModelFactory] Downloading native CIFAR-{num_classes} ResNet56 from torch hub...")
             # Prevent interactive prompt on Kaggle/Colab
-            torch.hub.trusted_list.append("chenyaofo/pytorch-cifar-models")
-            return torch.hub.load(
-                "chenyaofo/pytorch-cifar-models",
-                hub_model,
-                pretrained=True,
-            )
+            if hasattr(torch.hub, "trusted_list"):
+                torch.hub.trusted_list.append("chenyaofo/pytorch-cifar-models")
+            try:
+                return torch.hub.load(
+                    "chenyaofo/pytorch-cifar-models",
+                    hub_model,
+                    pretrained=True,
+                    trust_repo=True,
+                )
+            except TypeError:
+                return torch.hub.load(
+                    "chenyaofo/pytorch-cifar-models",
+                    hub_model,
+                    pretrained=True,
+                )
 
         raise NotImplementedError(
             f"Pretrained ResNet56 is only supported for CIFAR-10/100 (num_classes=10/100)."
