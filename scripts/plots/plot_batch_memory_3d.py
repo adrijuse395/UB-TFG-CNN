@@ -104,8 +104,9 @@ for idx, algo in enumerate(ALGORITHMS):
     ax.set_ylabel("Parameters (Millions)", fontsize=12, labelpad=10)
     ax.set_zlabel("Peak Memory (MB)", fontsize=12, labelpad=10)
     
-    ax.set_xticks(np.log2([1, 2, 4, 8, 16, 32, 64, 128]))
-    ax.set_xticklabels([1, 2, 4, 8, 16, 32, 64, 128])
+    unique_bs = sorted(df_batch['batch_size'].unique())
+    ax.set_xticks(np.log2(unique_bs))
+    ax.set_xticklabels(unique_bs)
     
     ax.view_init(elev=25, azim=135)
 

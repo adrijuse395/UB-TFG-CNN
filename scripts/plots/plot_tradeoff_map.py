@@ -47,7 +47,7 @@ if df_models.empty:
 # Configuration for zone separating lines
 # Options: "mean", "median", "baseline_pct", or a numeric value for a hardcoded split
 VSPLIT_MODE = 'median'       # e.g., "mean", "median", "baseline_pct", or 5.0
-HSPLIT_MODE = 88.0                 # e.g., "mean", "median", "baseline_pct", or 90.0
+HSPLIT_MODE = 'baseline_pct'       # Dynamic hSplit based on baseline accuracy
 
 # Calculate vSplit
 if isinstance(VSPLIT_MODE, (float, int)):
@@ -73,8 +73,8 @@ else:  # "mean" or default
 x_min, x_max = df_models["compression_ratio"].min(), df_models["compression_ratio"].max()
 y_min, y_max = df_models["accuracy"].min(), df_models["accuracy"].max()
 
-# The user wants to limit the graph by compression range 40
-x_max = 40.0
+# Limit graph by maximum compression ratio in data
+x_max = df_models["compression_ratio"].max() * 1.05
 x_min = 0.0
 
 x_pad = 0.0

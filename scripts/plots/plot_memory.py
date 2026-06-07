@@ -87,11 +87,19 @@ if baseline_mem is not None:
         ax_b.axhline(y=baseline_acc, color="0.35", linestyle="-.", linewidth=1.5, zorder=0)
         ax_b.scatter([baseline_mem], [baseline_acc], color="0.35", s=100, zorder=5, edgecolors="black", linewidths=1.2, label="Baseline")
 
+# Calculate dynamic memory limits
+max_mem = max(df_models["peak_inference_memory_mb"].max(), baseline_mem if baseline_mem else 0)
+min_mem = min(df_models["peak_inference_memory_mb"].min(), baseline_mem if baseline_mem else float('inf'))
+if min_mem == float('inf'): min_mem = 0
+mem_range = max_mem - min_mem
+min_x = max(0, min_mem - 0.05 * mem_range)
+max_x = max_mem + 0.05 * mem_range
+
 # Formatting Panel A
 ax_a.set_title("(a)", loc="center", fontsize=14, fontweight="bold", pad=12)
 ax_a.set_ylabel("Total Parameters (Millions)", fontsize=14, fontweight="bold")
 ax_a.set_xlabel("Peak Inference Memory (MB)", fontsize=14, fontweight="bold")
-ax_a.set_xlim(80, 140)
+ax_a.set_xlim(min_x, max_x)
 ax_a.set_ylim(bottom=0)
 ax_a.grid(True, alpha=0.35)
 ax_a.legend(loc="upper left", framealpha=0.95)
@@ -100,7 +108,7 @@ ax_a.legend(loc="upper left", framealpha=0.95)
 ax_b.set_title("(b)", loc="center", fontsize=14, fontweight="bold", pad=12)
 ax_b.set_ylabel("Accuracy (%)", fontsize=14, fontweight="bold")
 ax_b.set_xlabel("Peak Inference Memory (MB)", fontsize=14, fontweight="bold")
-ax_b.set_xlim(80, 140)
+ax_b.set_xlim(min_x, max_x)
 ax_b.set_ylim(0, 100)
 ax_b.grid(True, alpha=0.35)
 ax_b.legend(loc="lower right", framealpha=0.95)

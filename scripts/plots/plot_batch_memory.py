@@ -47,7 +47,7 @@ sns.lineplot(
 )
 
 ax.set_xscale("log", base=2)
-ax.set_xticks([1, 2, 4, 8, 16, 32, 64, 128])
+ax.set_xticks(sorted(df['batch_size'].unique()))
 ax.get_xaxis().set_major_formatter(plt.ScalarFormatter())
 
 ax.set_ylabel("Peak Inference Memory (MB)", fontsize=14, fontweight="bold")

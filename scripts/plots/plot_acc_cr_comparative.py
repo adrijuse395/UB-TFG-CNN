@@ -109,11 +109,8 @@ for ax, (ft_cond, title) in zip(axes, panels):
     ax.grid(True, alpha=0.35)
     ax.set_ylim(0, 100)
     
-    # Custom x-limits requested by the user
-    if ft_cond == "Without FT":
-        ax.set_xlim(0, 50)
-    else:
-        ax.set_xlim(0, 100)
+    max_cr = df_models['compression_ratio'].max()
+    ax.set_xlim(0, max_cr * 1.05)
 
 axes[0].set_ylabel("Accuracy (%)", fontsize=14)
 

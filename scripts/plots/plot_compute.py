@@ -72,14 +72,15 @@ for algo in ALGORITHMS:
     ax_a.plot(x_s, y_s, color=ALGO_COLORS[algo], linewidth=2.5, label=algo)
 
 ax_a.set_yscale("log")
-ax_a.set_yticks([1, 5, 20, 100, 500])
+# ax_a.set_yticks([1, 5, 20, 100, 500])  # Let matplotlib decide yticks dynamically
 ax_a.yaxis.set_major_formatter(FuncFormatter(_fmt_sec))
 ax_a.minorticks_off()
 ax_a.set_ylabel("Compression time (s)", fontsize=14)
 ax_a.set_title("(a)", loc="center", fontsize=14, fontweight="bold", pad=12)
 ax_a.grid(True, alpha=0.35, which="both")
 ax_a.set_xlabel("Compression Ratio (x)", fontsize=14)
-ax_a.set_xlim(0, 50)
+max_cr = df_m['compression_ratio'].max()
+ax_a.set_xlim(0, max_cr * 1.05)
 ax_a.legend(loc="upper right", framealpha=0.95)
 
 # --- (b) Inference Latency (Bar Chart with Mean and SD) ---

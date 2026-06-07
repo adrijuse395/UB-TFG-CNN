@@ -107,7 +107,8 @@ for ax, algo in zip(axes, ALGORITHMS):
     ax.grid(True, alpha=0.35)
     ax.set_ylim(0, 100)
     # Limit compression ratio to 0-100 as requested by the user
-    ax.set_xlim(0, 50)
+    max_cr = df_models['compression_ratio'].max()
+    ax.set_xlim(0, max_cr * 1.05)
 
 axes[0].set_ylabel("Accuracy (%)", fontsize=14)
 

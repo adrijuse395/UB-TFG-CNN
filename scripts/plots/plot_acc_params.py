@@ -102,8 +102,9 @@ for ax, algo in zip(axes, ALGORITHMS):
     ax.legend(loc="lower right", framealpha=0.95)
     ax.grid(True, alpha=0.35)
     ax.set_ylim(0, 100)
-    ax.set_xlim(0, 10)  # Max params is ~9.7M
-    ax.xaxis.set_major_locator(MultipleLocator(2))
+    max_params_m = max(df_models['total_parameters'].max() / 1e6, baseline_params / 1e6 if baseline_params else 0)
+    ax.set_xlim(0, max_params_m * 1.05)
+    # ax.xaxis.set_major_locator(MultipleLocator(2))  # Let matplotlib choose tick locations dynamically
 
 axes[0].set_ylabel("Accuracy (%)", fontsize=14)
 
