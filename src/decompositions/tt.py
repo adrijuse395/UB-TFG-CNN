@@ -38,27 +38,50 @@ class TTDecomposedLayer(BaseDecomposedLayer):
     def _compress_conv2d(self, layer: nn.Conv2d, rank: Union[int, List[int]]):
         # W shape: (out_channels, in_channels, k_h, k_w)
         W = layer.weight.data
-        
-        # TT ranks list must be length 5: [1, r1, r2, r3, 1]
+        out_ch = int(layer.out_channels)
+        in_ch = int(layer.in_channels)
+        kh = int(layer.kernel_size[0])
+        kw = int(layer.kernel_size[1])
+
         if isinstance(rank, int):
-            ranks = [1, rank, rank, rank, 1]
+            r = rank
+            # Break-even cap for TT Conv2d:
+            # TT params ≈ out*r + in*r^2 + kh*r^2 + kw*r (simplified upper bound for r1=r2=r3=r)
+            # Keep original parameter count: out*in*kh*kw
+            # Conservative cap: treat r as bounded by the SVD break-even of the unfolded matrix
+            denom = max(1, out_ch + in_ch * kh * kw)
+            max_rank = max(1, int((out_ch * in_ch * kh * kw) / denom))
+            if r > max_rank:
+                print(f"    [TT] rank capped for compression: {r} -> {max_rank} "
+                      f"(layer {in_ch}->{out_ch}, k={kh}x{kw})")
+                r = max_rank
+            ranks = [1, r, r, r, 1]
         elif isinstance(rank, list) and len(rank) == 3:
             ranks = [1, rank[0], rank[1], rank[2], 1]
         else:
             ranks = rank
-            
+
         factors = tensor_train(W, rank=ranks)
-        
+
         # We need a custom module to handle the on-the-fly reconstruction
         self.compressed_ops = _TTConv2dModule(factors, layer)
 
     def _compress_linear(self, layer: nn.Linear, rank: int):
         W = layer.weight.data
         if isinstance(rank, int):
+            # Break-even cap: TT Linear params = r*(in+out); original = in*out
+            # r* = (in*out) / (in+out)
+            in_f = int(layer.in_features)
+            out_f = int(layer.out_features)
+            max_rank = max(1, int((in_f * out_f) / max(1, in_f + out_f)))
+            if rank > max_rank:
+                print(f"    [TT] Linear rank capped for compression: {rank} -> {max_rank} "
+                      f"(in={in_f}, out={out_f})")
+                rank = max_rank
             ranks = [1, rank, 1]
         else:
             ranks = rank
-            
+
         factors = tensor_train(W, rank=ranks)
         self.compressed_ops = _TTLinearModule(factors, layer)
 
