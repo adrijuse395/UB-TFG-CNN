@@ -1051,7 +1051,7 @@
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0017 | ft",
+            "name": "CP rank 0020 | ft",
             "method": "CP",
             "target_layers": [
                 "conv1",
@@ -1111,11 +1111,11 @@
                 "layer3.8.conv2",
                 "fc"
             ],
-            "rank": 17,
+            "rank": 20,
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0033 | ft",
+            "name": "CP rank 0043 | ft",
             "method": "CP",
             "target_layers": [
                 "conv1",
@@ -1175,11 +1175,11 @@
                 "layer3.8.conv2",
                 "fc"
             ],
-            "rank": 33,
+            "rank": 43,
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0052 | ft",
+            "name": "CP rank 0101 | ft",
             "method": "CP",
             "target_layers": [
                 "conv1",
@@ -1239,11 +1239,11 @@
                 "layer3.8.conv2",
                 "fc"
             ],
-            "rank": 52,
+            "rank": 101,
             "fine_tuning": true
         },
         {
-            "name": "CP rank 0090 | ft",
+            "name": "CP rank 0275 | ft",
             "method": "CP",
             "target_layers": [
                 "conv1",
@@ -1303,7 +1303,7 @@
                 "layer3.8.conv2",
                 "fc"
             ],
-            "rank": 90,
+            "rank": 275,
             "fine_tuning": true
         }
     ]
