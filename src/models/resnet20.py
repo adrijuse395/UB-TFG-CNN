@@ -18,6 +18,8 @@ class ResNet20Definition(ModelDefinition):
         hub_model = _CIFAR_HUB_VARIANTS.get(num_classes)
         if pretrained and hub_model is not None:
             print(f"       [ModelFactory] Downloading native CIFAR-{num_classes} ResNet20 from torch hub...")
+            # Prevent interactive prompt on Kaggle/Colab
+            torch.hub.trusted_list.append("chenyaofo/pytorch-cifar-models")
             return torch.hub.load(
                 "chenyaofo/pytorch-cifar-models",
                 hub_model,
