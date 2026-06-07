@@ -141,20 +141,12 @@ TARGET_LAYERS = [
 # ---------------------------------------------------------------------------
 METHODS_BOUNDS = [
     # (method, min_rank, max_rank)
-    # SVD break-even: layer1≈14, layer3≈57 → cap at 57
-    # Tucker break-even: layer1≈14, layer3≈57 → cap at 55 (margin)
+    # Only CP is enabled to avoid recalculating the other 3 algorithms.
     # CP break-even: layer3.c2 (64→64, 3×3) = 36864/134 ≈ 275 → cap at 275
-    # TT: same SVD-derived bound
-    ("SVD",    2,  57),
-    ("Tucker", 2,  55),
-    ("TT",     2,  57),
     ("CP",     2, 275),
 ]
 
 METHODS_BOUNDS_SMOKE = [
-    ("SVD",    2,  57),
-    ("Tucker", 2,  55),
-    ("TT",     2,  57),
     ("CP",     2, 275),
 ]
 
