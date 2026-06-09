@@ -1,27 +1,20 @@
 """
 generate_experiments.py
 
-Generates experiment config files for VGG11-BN / CIFAR-10:
-  - config_smoke.json       : 10 ranks/method, limited batches — quick pipeline check
-  - config_full.json        : 68 ranks/method, unlimited batches — FT experiment
-  - config_full_no_ft.json  : 68 ranks/method, no FT, linearly spaced ranks
+Generates the basic experiment config file for VGG11-BN / CIFAR-10.
+The configuration is saved to `configs/config.json`.
 
-config_full and config_smoke use log-spaced parameters (geomspace) for even
+This script uses log-spaced parameters (geomspace) for even
 distribution in accuracy × log(params) plots.
-
-config_full_no_ft uses linearly spaced ranks (step = max_rank / 68) which
-produces uniform spacing between points on the accuracy × params plot.
-CP max rank is raised to 2000 to match the parameter range of other methods.
-
-Analytical parameter-count formulas are verified against run_20260515_100131
-results (errors < 0.01%).
+Analytical parameter-count formulas are used to find the exact ranks.
 """
 
 import json
+import os
 import numpy as np
 
 # ---------------------------------------------------------------------------
-# VGG11-BN CIFAR-10 — only the 11 target layers (verified from experiment CSV)
+# VGG11-BN CIFAR-10 — only the 11 target layers
 # ---------------------------------------------------------------------------
 CONV_LAYERS = [
     # (out_channels, in_channels, kh, kw)
@@ -50,7 +43,7 @@ TARGET_LAYERS = [
 ]
 
 # Max ranks for FT configs: SVD/Tucker/TT at 400; CP capped at 1500
-# to keep per-layer compression time ≤ ~200 s (rank 2000 ≈ 317 s/layer).
+# to keep per-layer compression time ≤ ~200 s.
 METHODS_BOUNDS = [
     # (method, min_rank, max_rank)
     ("SVD",    2,  400),
@@ -59,26 +52,15 @@ METHODS_BOUNDS = [
     ("CP",     2, 1500),
 ]
 
-# Max ranks for the no-FT config: CP raised to 2000 to align param range with
-# SVD/Tucker/TT (at rank 400 those reach ~9 M params; CP needs ~2000 to match).
-METHODS_BOUNDS_NO_FT = [
-    ("SVD",    2,  400),
-    ("Tucker", 2,  400),
-    ("TT",     2,  400),
-    ("CP",     2, 2000),
-]
-
 
 # ---------------------------------------------------------------------------
-# Analytical parameter-count functions — match the actual decomposition code
+# Analytical parameter-count functions
 # ---------------------------------------------------------------------------
 
 def _svd_conv(out, inp, kh, kw, r):
     """SVD: two convs, no bias (BN after original layer)."""
     max_valid = min(out, inp * kh * kw)
     eff = min(r, max_valid)
-    # Correct cap: decomposed params < original params
-    # rank < (out * inp*kh*kw) / (out + inp*kh*kw)
     max_comp = max(1, int((out * inp * kh * kw) / max(1, out + inp * kh * kw)))
     eff = min(eff, max_comp)
     return eff * (out + inp * kh * kw)
@@ -155,22 +137,9 @@ def get_param_spaced_ranks(method: str, min_rank: int, max_rank: int, num_sample
     """
     Return exactly *num_samples* unique integer ranks in [min_rank, max_rank] whose
     total_params values are as evenly distributed on a log scale as possible.
-
-    Two-phase approach:
-      1. Oversample: generate 100 log-spaced param targets → find closest rank for
-         each → deduplicate.  This builds a pool of ~68–86 well-distributed ranks.
-      2. Subsample: if the pool exceeds num_samples, take num_samples evenly-spaced
-         by index (preserving log-param distribution since the pool is already sorted
-         by monotone total_params).
-
-    This is the best achievable distribution for integer ranks: at very low ranks the
-    param function grows so steeply that multiple log-spaced targets collapse to the
-    same integer rank, making perfect uniformity impossible there.  The important
-    mid-range (where accuracy transitions) is always well-covered.
     """
     p_min   = total_params(method, min_rank)
     p_max   = total_params(method, max_rank)
-    # Phase 1: build a log-param-spaced pool of unique ranks
     targets = np.geomspace(p_min, p_max, 100)
     seen, pool = set(), []
     for t in targets:
@@ -179,23 +148,11 @@ def get_param_spaced_ranks(method: str, min_rank: int, max_rank: int, num_sample
             seen.add(r)
             pool.append(r)
     pool.sort()
-    # Phase 2: cap to num_samples by uniform index subsampling
+    
     if len(pool) <= num_samples:
         return pool
     idxs = np.round(np.linspace(0, len(pool) - 1, num_samples)).astype(int)
     return [pool[i] for i in idxs]
-
-
-def get_linear_spaced_ranks(max_rank: int, num_samples: int) -> list:
-    """
-    Return exactly num_samples integer ranks uniformly spaced in
-    [max_rank/num_samples, max_rank] with step = max_rank / num_samples.
-
-    This produces evenly spaced points on the accuracy × total_parameters
-    plot (since params grow roughly linearly with rank for all four methods).
-    """
-    step = max_rank / num_samples
-    return list(dict.fromkeys(round(step * i) for i in range(1, num_samples + 1)))
 
 
 # ---------------------------------------------------------------------------
@@ -208,7 +165,7 @@ def _fine_tuning_block(epochs: int, max_train_batches: int, max_val_batches: int
         "learning_rate":               1e-4,   # unused (dynamic LR takes over)
         "early_stopping":              True,
         "patience":                    3,
-        "min_improvement":             0.01,   # 0.01 reduction in train loss
+        "min_improvement":             0.01,
         "monitor":                     "train_loss",
         "max_train_batches_per_epoch": max_train_batches,
         "max_val_batches_per_epoch":   max_val_batches,
@@ -244,39 +201,6 @@ def build_config(
                 "target_layers": TARGET_LAYERS,
                 "rank":          r,
                 "fine_tuning":   True,
-            })
-
-    return {
-        "global_settings": global_settings,
-        "resource_limits": {"max_rank": 4000, "max_batch_size": 256},
-        "experiments":     experiments,
-    }
-
-
-def build_config_no_ft(num_samples: int) -> dict:
-    """
-    Builds a no-FT experiment config with linearly spaced ranks.
-    Each method gets num_samples ranks from max_rank/num_samples to max_rank.
-    CP max rank is 2000 (vs 1500 in FT configs) to match other methods' param range.
-    """
-    global_settings = {
-        "dataset":     "cifar10",
-        "model":       "vgg11_bn",
-        "batch_size":  128,
-        "use_gpu":     True,
-        "num_classes": 10,
-        "pretrained":  True,
-    }
-
-    experiments = []
-    for method, _min_r, max_r in METHODS_BOUNDS_NO_FT:
-        for r in get_linear_spaced_ranks(max_r, num_samples):
-            experiments.append({
-                "name":          f"{method} rank {r:04d}",
-                "method":        method,
-                "target_layers": TARGET_LAYERS,
-                "rank":          r,
-                "fine_tuning":   False,
             })
 
     return {
@@ -323,40 +247,23 @@ def _print_summary(cfg: dict, label: str, bounds=None) -> None:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    smoke_cfg = build_config(
-        num_samples        = 10,
-        ft_epochs          = 3,
-        max_train_batches  = 5,    # ≈640 samples/epoch — pipeline sanity only
-        max_val_batches    = 3,
-    )
+    # Ensure configs directory exists
+    os.makedirs("configs", exist_ok=True)
+    
     full_cfg = build_config(
         num_samples        = 30,
         ft_epochs          = 10,
         max_train_batches  = 50,    # 50 batches * 128 = 6400 samples/epoch
         max_val_batches    = 1,     # only 1 batch to print a rough val accuracy very fast
     )
-    no_ft_cfg = build_config_no_ft(num_samples=68)
 
-    with open("config_smoke.json", "w") as f:
-        json.dump(smoke_cfg, f, indent=4)
-    with open("config_full.json", "w") as f:
+    out_path = "configs/config.json"
+    with open(out_path, "w") as f:
         json.dump(full_cfg, f, indent=4)
-    with open("config_full_no_ft.json", "w") as f:
-        json.dump(no_ft_cfg, f, indent=4)
 
-    _print_summary(smoke_cfg,  "Smoke test          (config_smoke.json)")
-    _print_summary(full_cfg,   "Full FT experiment  (config_full.json)")
-    _print_summary(no_ft_cfg,  "Full no-FT          (config_full_no_ft.json)", bounds=METHODS_BOUNDS_NO_FT)
+    _print_summary(full_cfg,   f"Basic VGG11-BN Experiment  ({out_path})")
 
-    # Rough timing estimate for the full no-FT experiment
-    no_ft_exps = no_ft_cfg["experiments"]
-    n_cp   = sum(1 for e in no_ft_exps if e["method"] == "CP")
-    n_rest = len(no_ft_exps) - n_cp
-    est_comp  = n_rest * 3 + n_cp * 100   # s — CP rank 2000 ≈ 317 s max, avg ~100 s
-    est_eval  = len(no_ft_exps) * 3       # s — ~3 s test eval per experiment
-    est_total = (est_comp + est_eval) / 3600
-    print(f"  Rough no-FT estimate: {est_total:.1f} h on Kaggle GPU")
-    print(f"  (CP at rank 2000 ≈ 317 s; {n_cp} CP experiments × ~100 s avg)")
+    print(f"Configuration successfully generated and saved to {out_path}.")
     print()
 
 
