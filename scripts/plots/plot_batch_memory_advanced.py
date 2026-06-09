@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
+from matplotlib.ticker import MaxNLocator
+
 RUN_DIR = os.environ.get("RUN_DIR", os.path.dirname(os.path.abspath(__file__)))
 PLOT_DIR = os.path.join(RUN_DIR, "plots")
 os.makedirs(PLOT_DIR, exist_ok=True)
@@ -65,7 +67,7 @@ df_merged["total_params_millions"] = df_merged["total_parameters"] / 1e6
 df_merged = df_merged.sort_values(["method", "batch_size", "total_params_millions"])
 
 # Plotting Configuration
-sns.set_theme(style="whitegrid", context="paper", font_scale=1.2)
+sns.set_theme(style="whitegrid", context="paper", font_scale=1.65)
 plt.rcParams.update({
     "font.family": "serif",
     "axes.edgecolor": "black",
@@ -84,7 +86,7 @@ ALGO_COLORS = {
 ALGORITHMS = ["CP", "Tucker", "TT", "SVD"]
 BATCH_SIZES_TO_PLOT = [1, 2, 4, 8, 16, 32, 64, 128]
 
-fig, axes = plt.subplots(1, 4, figsize=(12, 4.8), sharex=False, sharey=True)
+fig, axes = plt.subplots(1, 4, figsize=(12, 5.5), sharex=False, sharey=True)
 axes = axes.flatten()
 
 for idx, algo in enumerate(ALGORITHMS):
@@ -132,18 +134,21 @@ for idx, algo in enumerate(ALGORITHMS):
                 zorder=5
             )
             
-    ax.set_title(f"{chr(97 + idx)})", fontsize=14, fontweight="bold")
+    # Display index only and lower font size
+    ax.set_title(f"{chr(97 + idx)})", fontsize=15, fontweight="bold")
     
     if idx == 0:
-        ax.set_ylabel("Peak Inference Memory (MB)", fontsize=13, labelpad=12)
+        ax.set_ylabel("Peak Inference Memory (MB)", fontsize=16, labelpad=12)
     
-    # Let x-axis autoscale, but set minimum to 0
-    ax.set_xlim(left=0, right=(baseline_params / 1e6) * 1.05)
-    ax.set_ylim(bottom=0)
+    # Force exact limits and ticks
+    ax.set_xlim(0, 10)
+    ax.set_xticks([0, 3, 6, 9])
+    ax.set_ylim(0, 150)
+    ax.set_yticks([0, 30, 60, 90, 120, 150])
     
     # Legend removed from here, moving to global
         
-fig.text(0.5, 0.06, "Total Parameters (Millions)", ha='center', fontsize=13)
+fig.text(0.5, 0.05, "Total Parameters (Millions)", ha='center', fontsize=16)
 
 import matplotlib.lines as mlines
 # Create a generic grey gradient legend for Batch Size
@@ -155,10 +160,10 @@ legend_elements = [
 legend_elements.append(mlines.Line2D([0], [0], marker='o', color='w', markerfacecolor='black', markersize=9, markeredgecolor='black', label='Baseline'))
 
 # Put the single legend outside the axes, bottom right, 3x3 grid
-leg = fig.legend(handles=legend_elements, title="Batch Size", loc="lower right", ncol=3, bbox_to_anchor=(0.98, -0.04), fontsize=10, title_fontsize=11, frameon=False)
+leg = fig.legend(handles=legend_elements, title="Batch Size", loc="lower right", ncol=3, bbox_to_anchor=(0.98, -0.035), fontsize=13, title_fontsize=14, frameon=False)
 leg._legend_box.align = "left"
 
-plt.tight_layout(rect=[0, 0.14, 1, 1])
+plt.tight_layout(rect=[0, 0.15, 1, 1])
 
 out_path = os.path.join(PLOT_DIR, "batch_memory_advanced.png")
 plt.savefig(out_path, dpi=300, bbox_inches="tight")

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import MultipleLocator, MaxNLocator
 from scipy.interpolate import PchipInterpolator
 import os
 
@@ -26,14 +26,16 @@ df_models = df_models.sort_values(by=["method", "ft_label", "compression_ratio"]
 ALGORITHMS = ["Tucker", "TT", "CP"]
 PANEL_LABELS = {"Tucker": "(a)", "TT": "(b)", "CP": "(c)"}
 
-sns.set_theme(style="whitegrid", context="paper", font_scale=1.35)
+sns.set_theme(style="whitegrid", context="paper", font_scale=1.7)
 plt.rcParams.update({
     "font.family": "serif",
     "axes.edgecolor": "black",
     "axes.linewidth": 1.2,
     "legend.frameon": True,
     "legend.edgecolor": "black",
-    "legend.fontsize": 9,
+    "legend.fontsize": 14,
+    "xtick.labelsize": 14,
+    "ytick.labelsize": 14,
 })
 
 ALGO_COLORS = {
@@ -65,7 +67,7 @@ fig, axes = plt.subplots(1, 3, figsize=(14, 4.5), sharey=True)
 MAX_CR_DISPLAY = df_models["compression_ratio"].quantile(0.98) # ignore extreme outliers if any
 
 for ax, algo in zip(axes, ALGORITHMS):
-    ax.set_title(PANEL_LABELS[algo], loc="center", fontsize=12, fontweight="bold", pad=8)
+    ax.set_title(PANEL_LABELS[algo], loc="center", fontsize=18, fontweight="bold", pad=8)
     subset = df_models[df_models["method"] == algo]
     
     for ft_lbl, group in subset.groupby("ft_label"):
@@ -106,14 +108,14 @@ for ax, algo in zip(axes, ALGORITHMS):
     ax.legend(loc="center", bbox_to_anchor=(40, 40), bbox_transform=ax.transData, framealpha=0.95)
     ax.grid(True, alpha=0.35)
     ax.set_ylim(0, 100)
-    # Limit compression ratio to 0-100 as requested by the user
-    max_cr = df_models['compression_ratio'].max()
-    ax.set_xlim(0, max_cr * 1.05)
+    # Limit compression ratio to 0-40 and force exact ticks
+    ax.set_xlim(0, 40)
+    ax.set_xticks([0, 10, 20, 30, 40])
 
-axes[0].set_ylabel("Accuracy (%)", fontsize=14)
+axes[0].set_ylabel("Accuracy (%)", fontsize=18)
 
-fig.subplots_adjust(wspace=0.08, bottom=0.15, top=0.88)
-fig.supxlabel("Compression Ratio (x)", fontsize=14)
+fig.subplots_adjust(wspace=0.16, bottom=0.15, top=0.88)
+fig.supxlabel("Compression Ratio (x)", fontsize=18)
 
 out_path = os.path.join(PLOT_DIR, "accuracy_vs_compression.png")
 plt.savefig(out_path, dpi=300, bbox_inches="tight")

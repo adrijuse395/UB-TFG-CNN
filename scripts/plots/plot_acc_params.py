@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import MultipleLocator, MaxNLocator, ScalarFormatter
 from scipy.interpolate import PchipInterpolator
 import os
 
@@ -23,17 +23,26 @@ df_models["ft_label"] = df_models["fine_tuning_enabled"].apply(
 )
 df_models = df_models.sort_values(by=["method", "ft_label", "total_parameters"])
 
+# Determine dynamic scale (Millions vs Thousands) to keep ticks as clean integers
+max_params_val = max(df_models['total_parameters'].max() if not df_models.empty else 0, baseline_params if baseline_params else 0)
+if max_params_val < 1.5e6:
+    param_divisor = 1e3
+    x_unit = "Thousands"
+else:
+    param_divisor = 1e6
+    x_unit = "Millions"
+
 ALGORITHMS = ["Tucker", "TT", "CP"]
 PANEL_LABELS = {"Tucker": "(a)", "TT": "(b)", "CP": "(c)"}
 
-sns.set_theme(style="whitegrid", context="paper", font_scale=1.35)
+sns.set_theme(style="whitegrid", context="paper", font_scale=1.8)
 plt.rcParams.update({
     "font.family": "serif",
     "axes.edgecolor": "black",
     "axes.linewidth": 1.2,
     "legend.frameon": True,
     "legend.edgecolor": "black",
-    "legend.fontsize": 9,
+    "legend.fontsize": 13.5,
 })
 
 ALGO_COLORS = {
@@ -61,12 +70,12 @@ def _smooth_curve(x: np.ndarray, y: np.ndarray, n: int = 250) -> tuple[np.ndarra
 fig, axes = plt.subplots(1, 3, figsize=(14, 4.5), sharey=True)
 
 for ax, algo in zip(axes, ALGORITHMS):
-    ax.set_title(PANEL_LABELS[algo], loc="center", fontsize=12, fontweight="bold", pad=8)
+    ax.set_title(PANEL_LABELS[algo], loc="center", fontsize=17, fontweight="bold", pad=8)
     subset = df_models[df_models["method"] == algo]
     
     for ft_lbl, group in subset.groupby("ft_label"):
         group = group.sort_values("total_parameters")
-        x_arr = group["total_parameters"].values / 1e6  # Convert to Millions
+        x_arr = group["total_parameters"].values / param_divisor  # Convert to Thousands or Millions
         y_arr = group["accuracy"].values
         
         x_s, y_s = _smooth_curve(x_arr, y_arr)
@@ -90,7 +99,7 @@ for ax, algo in zip(axes, ALGORITHMS):
         )
     if baseline_acc is not None and baseline_params is not None:
         ax.scatter(
-            [baseline_params / 1e6],
+            [baseline_params / param_divisor],
             [baseline_acc],
             color="0.35",
             s=48,
@@ -102,14 +111,14 @@ for ax, algo in zip(axes, ALGORITHMS):
     ax.legend(loc="lower right", framealpha=0.95)
     ax.grid(True, alpha=0.35)
     ax.set_ylim(0, 100)
-    max_params_m = max(df_models['total_parameters'].max() / 1e6, baseline_params / 1e6 if baseline_params else 0)
-    ax.set_xlim(0, max_params_m * 1.05)
-    # ax.xaxis.set_major_locator(MultipleLocator(2))  # Let matplotlib choose tick locations dynamically
+    max_params_scaled = max(df_models['total_parameters'].max() / param_divisor, baseline_params / param_divisor if baseline_params else 0)
+    ax.set_xlim(0, max_params_scaled * 1.05)
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=5, integer=True))
 
-axes[0].set_ylabel("Accuracy (%)", fontsize=14)
+axes[0].set_ylabel("Accuracy (%)", fontsize=18)
 
-fig.subplots_adjust(wspace=0.08, bottom=0.15, top=0.88)
-fig.supxlabel("Total parameters (Millions)", fontsize=14)
+fig.subplots_adjust(wspace=0.08, bottom=0.18, top=0.88)
+axes[1].set_xlabel(f"Total parameters ({x_unit})", fontsize=18, labelpad=10)
 
 out_path = os.path.join(PLOT_DIR, "accuracy_vs_parameters.png")
 plt.savefig(out_path, dpi=300, bbox_inches="tight")

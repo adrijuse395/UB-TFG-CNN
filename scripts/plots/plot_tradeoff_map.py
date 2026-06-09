@@ -74,7 +74,7 @@ x_min, x_max = df_models["compression_ratio"].min(), df_models["compression_rati
 y_min, y_max = df_models["accuracy"].min(), df_models["accuracy"].max()
 
 # Limit graph by maximum compression ratio in data
-x_max = df_models["compression_ratio"].max() * 1.05
+x_max = 40.0
 x_min = 0.0
 
 x_pad = 0.0
@@ -83,14 +83,14 @@ y_pad = (y_max - y_min) * 0.05 if y_max > y_min else 0.5
 x0, x1 = x_min, x_max
 y0, y1 = y_min - y_pad, y_max + y_pad
 
-sns.set_theme(style="whitegrid", context="paper", font_scale=1.35)
+sns.set_theme(style="whitegrid", context="paper", font_scale=1.5)
 plt.rcParams.update({
     "font.family": "serif",
     "axes.edgecolor": "black",
     "axes.linewidth": 1.2,
     "legend.frameon": True,
     "legend.edgecolor": "black",
-    "legend.fontsize": 10,
+    "legend.fontsize": 12.5,
 })
 
 fig, ax = plt.subplots(figsize=(11, 7.5))
@@ -140,8 +140,9 @@ for method in methods:
 
 ax.set_xlim(x0, x1)
 ax.set_ylim(y0, y1)
-ax.set_xlabel("Compression Ratio (×)", fontsize=14, fontweight="bold", labelpad=12)
-ax.set_ylabel("Accuracy (%)", fontsize=14, fontweight="bold", labelpad=12)
+ax.set_xlabel("Compression Ratio (×)", fontsize=16, labelpad=12)
+ax.set_ylabel("Accuracy (%)", fontsize=16, labelpad=12)
+ax.tick_params(axis='both', which='major', labelsize=14)
 
 # Split legend into Zones and Methods
 handles, labels = ax.get_legend_handles_labels()
@@ -158,19 +159,21 @@ for h, l in zip(handles, labels):
         method_l.append(l)
 
 # First legend (Zones) at the top
-leg_zones = ax.legend(zone_h, zone_l, loc="upper left", bbox_to_anchor=(1.02, 0.95), 
-                      frameon=False, title="Performance Zones", fontsize=11)
+leg_zones = ax.legend(zone_h, zone_l, loc="upper left", bbox_to_anchor=(1.02, 1.02), 
+                      frameon=False, title="Performance Zones", fontsize=14.5)
 # Align title and content to the left
 leg_zones._legend_box.align = "left"
 leg_zones.get_title().set_fontweight("bold")
+leg_zones.get_title().set_fontsize(15.5)
 ax.add_artist(leg_zones)
 
 # Second legend (Methods) below Zones
-leg_methods = ax.legend(method_h, method_l, loc="upper left", bbox_to_anchor=(1.02, 0.70), 
-                        frameon=False, title="Algorithms", fontsize=11)
+leg_methods = ax.legend(method_h, method_l, loc="upper left", bbox_to_anchor=(1.02, 0.60), 
+                        frameon=False, title="Algorithms", fontsize=14.5)
 # Align title and content to the left
 leg_methods._legend_box.align = "left"
 leg_methods.get_title().set_fontweight("bold")
+leg_methods.get_title().set_fontsize(15.5)
 ax.add_artist(leg_methods)
 
 # Third legend (Split Thresholds) below Methods
@@ -182,13 +185,96 @@ split_l = [
     f"Compression: {vSplit:.1f}×",
     f"Accuracy: {hSplit:.1f}%"
 ]
-leg_splits = ax.legend(split_h, split_l, loc="upper left", bbox_to_anchor=(1.02, 0.28), 
-                       frameon=False, title="Split Thresholds", fontsize=11)
+leg_splits = ax.legend(split_h, split_l, loc="upper left", bbox_to_anchor=(1.02, 0.08), 
+                       frameon=False, title="Split Thresholds", fontsize=14.5)
 leg_splits._legend_box.align = "left"
 leg_splits.get_title().set_fontweight("bold")
+leg_splits.get_title().set_fontsize(15.5)
 
 out_path = os.path.join(PLOT_DIR, "tradeoff_map.png")
 fig.savefig(out_path, dpi=300, bbox_inches="tight", bbox_extra_artists=(leg_zones, leg_methods, leg_splits))
 plt.close(fig)
 
 print(f"Saved trade-off map to {out_path}")
+
+# Compute and save the Trade-off Zones Table
+table_lines = []
+table_lines.append("========================================================================")
+table_lines.append("TRADE-OFF ZONES DISTRIBUTION (POST-FT CONFIGURATIONS)")
+table_lines.append("========================================================================")
+
+# Headers
+headers = ["Method", "Ideal", "Accuracy-first", "Compression-first", "Weak"]
+col_width = 24
+header_line = "".join(h.ljust(col_width) for h in headers)
+table_lines.append(header_line)
+table_lines.append("-" * len(header_line))
+
+# We only consider fine_tuned models (fine_tuning_enabled == True)
+df_ft = df_models[df_models["fine_tuning_enabled"] == True].copy()
+
+# Methods list
+methods_list = sorted(df_ft["method"].unique())
+
+for method in methods_list:
+    subset = df_ft[df_ft["method"] == method]
+    total = len(subset)
+    
+    if total == 0:
+        continue
+        
+    ideal_cnt = len(subset[(subset["compression_ratio"] >= vSplit) & (subset["accuracy"] >= hSplit)])
+    acc_first_cnt = len(subset[(subset["compression_ratio"] < vSplit) & (subset["accuracy"] >= hSplit)])
+    comp_first_cnt = len(subset[(subset["compression_ratio"] >= vSplit) & (subset["accuracy"] < hSplit)])
+    weak_cnt = len(subset[(subset["compression_ratio"] < vSplit) & (subset["accuracy"] < hSplit)])
+    
+    def fmt(cnt, tot):
+        pct = (cnt / tot) * 100
+        return f"{cnt} ({pct:.1f}%)"
+        
+    row = [
+        method,
+        fmt(ideal_cnt, total),
+        fmt(acc_first_cnt, total),
+        fmt(comp_first_cnt, total),
+        fmt(weak_cnt, total)
+    ]
+    table_lines.append("".join(val.ljust(col_width) for val in row))
+
+table_lines.append("\n" + "=" * 120)
+table_lines.append("LaTeX Table Code:")
+table_lines.append("=" * 120)
+table_lines.append(r"\begin{table}[h]")
+table_lines.append(r"\centering")
+table_lines.append(r"\begin{tabular}{lcccc}")
+table_lines.append(r"\hline")
+table_lines.append(r"Method & Ideal & Accuracy-first & Compression-first & Weak \\")
+table_lines.append(r"\hline")
+
+for method in methods_list:
+    subset = df_ft[df_ft["method"] == method]
+    total = len(subset)
+    if total == 0:
+        continue
+    ideal_cnt = len(subset[(subset["compression_ratio"] >= vSplit) & (subset["accuracy"] >= hSplit)])
+    acc_first_cnt = len(subset[(subset["compression_ratio"] < vSplit) & (subset["accuracy"] >= hSplit)])
+    comp_first_cnt = len(subset[(subset["compression_ratio"] >= vSplit) & (subset["accuracy"] < hSplit)])
+    weak_cnt = len(subset[(subset["compression_ratio"] < vSplit) & (subset["accuracy"] < hSplit)])
+    
+    def fmt_latex(cnt, tot):
+        pct = (cnt / tot) * 100
+        return f"{cnt} ({pct:.1f}\\%)"
+        
+    table_lines.append(f"{method} & {fmt_latex(ideal_cnt, total)} & {fmt_latex(acc_first_cnt, total)} & {fmt_latex(comp_first_cnt, total)} & {fmt_latex(weak_cnt, total)} \\\\")
+
+table_lines.append(r"\hline")
+table_lines.append(r"\end{tabular}")
+table_lines.append(r"\caption{Distribution of post-FT configurations across performance zones.}")
+table_lines.append(r"\label{tab:tradeoff_zones}")
+table_lines.append(r"\end{table}")
+
+txt_out_path = os.path.join(PLOT_DIR, "tradeoff_zones_table.txt")
+with open(txt_out_path, "w", encoding="utf-8") as f:
+    f.write("\n".join(table_lines) + "\n")
+
+print(f"Saved tradeoff zones table to {txt_out_path}")

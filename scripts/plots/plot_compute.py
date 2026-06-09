@@ -1,9 +1,5 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from matplotlib.ticker import MultipleLocator, FuncFormatter
-from scipy.interpolate import PchipInterpolator
 import os
 
 RUN_DIR = os.environ.get("RUN_DIR", os.path.dirname(os.path.abspath(__file__)))
@@ -12,115 +8,177 @@ os.makedirs(PLOT_DIR, exist_ok=True)
 
 df = pd.read_csv(os.path.join(RUN_DIR, "results.csv"))
 
-# Baseline metrics
+# Get baseline latency
 baseline_row = df[df["method"].isna() | (df["method"] == "None")]
 baseline_lat = float(baseline_row["latency_ms"].iloc[0]) if not baseline_row.empty else None
 
-# Filter to just 'Without FT' since compression time and latency depend only on the rank, not on fine-tuning weights
+# Filter decomposition rows where fine_tuning_enabled is False
 df_m = df[(df["method"].notna()) & (df["method"] != "None") & (df["fine_tuning_enabled"] == False)].copy()
 
+run_id = os.path.basename(os.path.abspath(RUN_DIR))
+
+# We'll gather statistics for each algorithm
 ALGORITHMS = ["SVD", "Tucker", "TT", "CP"]
-ALGO_COLORS = {
-    "CP":     "#1f77b4",
-    "Tucker": "#d62728",
-    "TT":     "#2ca02c",
-    "SVD":    "#f08c14",
-}
 
-sns.set_theme(style="whitegrid", context="paper", font_scale=1.35)
-plt.rcParams.update({
-    "font.family": "serif",
-    "axes.edgecolor": "black",
-    "axes.linewidth": 1.2,
-    "legend.frameon": True,
-    "legend.edgecolor": "black",
-    "legend.fontsize": 10,
-})
-
-def _smooth(x, y, n=250, log_y=False):
-    if len(x) < 2: return x, y
-    order = np.argsort(x)
-    x, y = x[order], y[order]
-    x_u, idx = np.unique(x, return_index=True)
-    y_u = y[idx]
-    if len(x_u) < 2: return x_u, y_u
-    x_new = np.linspace(x_u.min(), x_u.max(), n)
-    if log_y:
-        valid = y_u > 0
-        if not np.any(valid): return x_new, np.zeros_like(x_new)
-        y_interp = 10 ** PchipInterpolator(x_u[valid], np.log10(y_u[valid]))(x_new)
-    else:
-        y_interp = PchipInterpolator(x_u, y_u)(x_new)
-    return x_new, y_interp
-
-def _fmt_sec(v, _):
-    if v <= 0: return ""
-    if v >= 10: return f"{int(round(v))}s"
-    if v >= 1: return f"{v:.1f}s"
-    return f"{v:.2f}s"
-
-fig = plt.figure(figsize=(9, 5.5))
-# EXACT SQUARE FOR PANEL A: height = 5.5 * 0.73 = 4.015. width = 9 * 0.4461 = 4.015
-ax_a = fig.add_axes([0.08, 0.15, 0.4461, 0.73])
-ax_b = fig.add_axes([0.62, 0.15, 0.33, 0.73])
-
-# --- (a) Compression time ---
-for algo in ALGORITHMS:
-    g = df_m[df_m["method"] == algo].sort_values("compression_ratio")
-    if len(g) < 2: continue
-    x_s, y_s = _smooth(g["compression_ratio"].values, g["compression_time_s"].values, log_y=True)
-    ax_a.plot(x_s, y_s, color=ALGO_COLORS[algo], linewidth=2.5, label=algo)
-
-ax_a.set_yscale("log")
-# ax_a.set_yticks([1, 5, 20, 100, 500])  # Let matplotlib decide yticks dynamically
-ax_a.yaxis.set_major_formatter(FuncFormatter(_fmt_sec))
-ax_a.minorticks_off()
-ax_a.set_ylabel("Compression time (s)", fontsize=14)
-ax_a.set_title("(a)", loc="center", fontsize=14, fontweight="bold", pad=12)
-ax_a.grid(True, alpha=0.35, which="both")
-ax_a.set_xlabel("Compression Ratio (x)", fontsize=14)
-max_cr = df_m['compression_ratio'].max()
-ax_a.set_xlim(0, max_cr * 1.05)
-ax_a.legend(loc="upper right", framealpha=0.95)
-
-# --- (b) Inference Latency (Bar Chart with Mean and SD) ---
-_g = df_m.groupby("method")["latency_ms"]
-lat_mean = _g.mean().reindex(ALGORITHMS)
-lat_std = _g.std().reindex(ALGORITHMS).fillna(0)
-
-x = np.arange(len(ALGORITHMS))
-bar_w = 0.5
-
-ax_b.bar(
-    x,
-    lat_mean.values,
-    bar_w,
-    yerr=lat_std.values,
-    capsize=5,
-    error_kw={"elinewidth": 1.5, "capthick": 1.5, "ecolor": "0.15", "zorder": 4},
-    color=[ALGO_COLORS[algo] for algo in ALGORITHMS],
-    edgecolor="black",
-    linewidth=1.2,
-    zorder=3,
-)
-
+stats = []
+# Add baseline first if available
 if baseline_lat is not None:
-    ax_b.axhline(baseline_lat, color="0.35", linestyle="-.", linewidth=1.5, label="Baseline", zorder=5)
-    ax_b.legend(loc="upper right", framealpha=0.95)
+    stats.append({
+        "Method": "Baseline",
+        "Tensor_order": "N/A",
+        "N": 1,
+        "Mean": baseline_lat,
+        "Std": 0.0,
+        "Min": baseline_lat,
+        "Max": baseline_lat
+    })
 
-ax_b.set_xticks(x)
-ax_b.set_xticklabels(ALGORITHMS, fontsize=12, fontweight="bold")
-ax_b.set_ylabel("Mean Inference Latency (ms)", fontsize=14)
-ax_b.set_title("(b)", loc="center", fontsize=14, fontweight="bold", pad=12)
-ax_b.grid(True, alpha=0.35, axis="y", zorder=0)
+for algo in ALGORITHMS:
+    sub = df_m[df_m["method"] == algo]
+    if sub.empty:
+        continue
+    latencies = sub["latency_ms"].dropna()
+    if len(latencies) == 0:
+        continue
+    n = len(latencies)
+    mean_val = latencies.mean()
+    std_val = latencies.std()
+    if pd.isna(std_val):
+        std_val = 0.0
+    min_val = latencies.min()
+    max_val = latencies.max()
+    stats.append({
+        "Method": algo,
+        "Tensor_order": "2D",
+        "N": n,
+        "Mean": mean_val,
+        "Std": std_val,
+        "Min": min_val,
+        "Max": max_val
+    })
 
-y_top = (lat_mean.values + lat_std.values).max()
-ax_b.set_ylim(0, max(y_top * 1.15, baseline_lat * 1.5 if baseline_lat else 0))
+# Define targets for progression matrix (max 5 columns)
+target_crs = [2.5, 5.0, 10.0, 20.0, 40.0]
 
-# We don't need subplots_adjust because we used absolute add_axes coordinates
+# Build matrices
+matrix_comp_time = {algo: {} for algo in ALGORITHMS}
+matrix_latency = {algo: {} for algo in ALGORITHMS}
+matrix_actual_cr = {algo: {} for algo in ALGORITHMS}
 
-out_path = os.path.join(PLOT_DIR, "compute_vs_compression.png")
-plt.savefig(out_path, dpi=300, bbox_inches="tight")
-plt.close()
+for algo in ALGORITHMS:
+    sub = df_m[df_m["method"] == algo]
+    if sub.empty:
+        continue
+    for target in target_crs:
+        # Find closest row by compression_ratio
+        idx = (sub["compression_ratio"] - target).abs().idxmin()
+        closest_row = sub.loc[idx]
+        closest_cr = closest_row["compression_ratio"]
+        # Only keep if it is reasonably close (e.g. within target * 0.5)
+        if abs(closest_cr - target) <= target * 0.5:
+            matrix_comp_time[algo][target] = closest_row["compression_time_s"]
+            matrix_latency[algo][target] = closest_row["latency_ms"]
+            matrix_actual_cr[algo][target] = closest_cr
+
+# Generate output text
+lines = []
+lines.append("2D equivalence — Inference latency (ms)")
+lines.append(run_id)
+lines.append("Aggregated over all compression ratios (2D presets only).")
+lines.append("")
+lines.append("========================================================================")
+lines.append("TABLE — Inference latency (ms)")
+lines.append("========================================================================")
+lines.append("Method\tTensor_order\tN\tMean\tStd\tMin\tMax")
+for s in stats:
+    lines.append(f"{s['Method']}\t{s['Tensor_order']}\t{s['N']}\t{s['Mean']:.4f}\t{s['Std']:.4f}\t{s['Min']:.4f}\t{s['Max']:.4f}")
+
+lines.append("")
+lines.append("LaTeX rows (Method & Tensor order & Mean & Std & N):")
+for s in stats:
+    lines.append(f"{s['Method']} & {s['Tensor_order']} & {s['Mean']:.4f} & {s['Std']:.4f} & {s['N']} \\\\")
+
+lines.append("")
+lines.append("========================================================================")
+lines.append("Mean $\\pm$ Std  [copy-paste friendly]")
+lines.append("========================================================================")
+decomp_stats = [s for s in stats if s["Method"] != "Baseline"]
+baseline_stat = next((s for s in stats if s["Method"] == "Baseline"), None)
+
+for s in decomp_stats:
+    lines.append(f"{s['Method']}\t{s['Mean']:.3f} $\\pm$ {s['Std']:.3f}")
+if baseline_stat:
+    lines.append(f"Baseline\t{baseline_stat['Mean']:.3f}")
+
+# Add matrices sections
+lines.append("")
+lines.append("========================================================================")
+lines.append("MATRIX — Compression Time (s) vs Target Compression Ratio")
+lines.append("========================================================================")
+header = "Method\t" + "\t".join(f"CR~{t:.1f}" for t in target_crs)
+lines.append(header)
+for algo in ALGORITHMS:
+    row_strs = []
+    for t in target_crs:
+        val = matrix_comp_time[algo].get(t)
+        row_strs.append(f"{val:.3f}" if val is not None else "N/A")
+    lines.append(f"{algo}\t" + "\t".join(row_strs))
+
+lines.append("")
+lines.append("LaTeX rows (Compression Time):")
+latex_header = "Method & " + " & ".join(f"CR~{t:.1f}" for t in target_crs) + " \\\\"
+lines.append(latex_header)
+for algo in ALGORITHMS:
+    row_strs = []
+    for t in target_crs:
+        val = matrix_comp_time[algo].get(t)
+        row_strs.append(f"{val:.3f}" if val is not None else "N/A")
+    lines.append(f"{algo} & " + " & ".join(row_strs) + " \\\\")
+
+lines.append("")
+lines.append("========================================================================")
+lines.append("MATRIX — Inference Latency (ms) vs Target Compression Ratio")
+lines.append("========================================================================")
+header_lat = "Method\t" + "\t".join(f"CR~{t:.1f}" for t in target_crs)
+lines.append(header_lat)
+for algo in ALGORITHMS:
+    row_strs = []
+    for t in target_crs:
+        val = matrix_latency[algo].get(t)
+        row_strs.append(f"{val:.3f}" if val is not None else "N/A")
+    lines.append(f"{algo}\t" + "\t".join(row_strs))
+if baseline_lat is not None:
+    lines.append(f"Baseline\t" + "\t".join(f"{baseline_lat:.3f}" for _ in target_crs))
+
+lines.append("")
+lines.append("LaTeX rows (Inference Latency):")
+lines.append(latex_header)
+for algo in ALGORITHMS:
+    row_strs = []
+    for t in target_crs:
+        val = matrix_latency[algo].get(t)
+        row_strs.append(f"{val:.3f}" if val is not None else "N/A")
+    lines.append(f"{algo} & " + " & ".join(row_strs) + " \\\\")
+if baseline_lat is not None:
+    lines.append(f"Baseline & " + " & ".join(f"{baseline_lat:.3f}" for _ in target_crs) + " \\\\")
+
+# Add detailed mapping for user reference
+lines.append("")
+lines.append("========================================================================")
+lines.append("MAPPING DETAILS — Actual Compression Ratio (x) used for each column")
+lines.append("========================================================================")
+lines.append(header)
+for algo in ALGORITHMS:
+    row_strs = []
+    for t in target_crs:
+        val = matrix_actual_cr[algo].get(t)
+        row_strs.append(f"{val:.2f}" if val is not None else "N/A")
+    lines.append(f"{algo}\t" + "\t".join(row_strs))
+
+output_text = "\n".join(lines) + "\n"
+
+out_path = os.path.join(PLOT_DIR, "compute_vs_compression.txt")
+with open(out_path, "w", encoding="utf-8") as f:
+    f.write(output_text)
 
 print(f"Saved: {out_path}")

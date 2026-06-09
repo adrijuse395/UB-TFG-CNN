@@ -159,7 +159,31 @@ class ModelEvaluator:
         model.eval()
         model.to(self.device)
         dummy = torch.randn(input_shape).to(self.device)
-        macs, _ = thop_profile(model, inputs=(dummy,), verbose=False)
+
+        # Custom hooks for custom decomposition modules that thop doesn't recognize
+        def count_tt_conv2d(m, x, y):
+            kh = m.factors[2].shape[1]
+            kw = m.factors[3].shape[1]
+            in_ch = x[0].shape[1]
+            groups = m.groups
+            # Standard conv MACs: output_elements * (in_channels // groups) * kh * kw
+            total_ops = y.numel() * (in_ch // groups) * kh * kw
+            m.total_ops += torch.DoubleTensor([int(total_ops)])
+
+        def count_tt_linear(m, x, y):
+            in_features = x[0].shape[-1]
+            total_ops = y.numel() * in_features
+            m.total_ops += torch.DoubleTensor([int(total_ops)])
+
+        custom_ops = {}
+        for module in model.modules():
+            class_name = module.__class__.__name__
+            if class_name == "_TTConv2dModule":
+                custom_ops[module.__class__] = count_tt_conv2d
+            elif class_name == "_TTLinearModule":
+                custom_ops[module.__class__] = count_tt_linear
+
+        macs, _ = thop_profile(model, inputs=(dummy,), custom_ops=custom_ops, verbose=False)
         return float(macs) / 1e9
 
     def _measure_latency(self, model: nn.Module, input_shape: tuple, num_runs: int = 100) -> float:

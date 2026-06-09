@@ -31,14 +31,16 @@ ALGO_COLORS = {
 }
 ALGO_LINESTYLES = {"SVD": "-", "Tucker": "-", "TT": "-", "CP": "-"}
 
-sns.set_theme(style="whitegrid", context="paper", font_scale=1.35)
+sns.set_theme(style="whitegrid", context="paper", font_scale=1.7)
 plt.rcParams.update({
     "font.family": "serif",
     "axes.edgecolor": "black",
     "axes.linewidth": 1.2,
     "legend.frameon": True,
     "legend.edgecolor": "black",
-    "legend.fontsize": 10,
+    "legend.fontsize": 14,
+    "xtick.labelsize": 14,
+    "ytick.labelsize": 14,
 })
 
 def _smooth_curve(x: np.ndarray, y: np.ndarray, n: int = 250) -> tuple[np.ndarray, np.ndarray]:
@@ -61,7 +63,7 @@ panels = [
 ]
 
 for ax, (ft_cond, title) in zip(axes, panels):
-    ax.set_title(title, loc="center", fontsize=14, fontweight="bold", pad=12)
+    ax.set_title(title, loc="center", fontsize=18, fontweight="bold", pad=12)
     subset_ft = df_models[df_models["ft_label"] == ft_cond]
     
     for algo in ALGORITHMS:
@@ -109,13 +111,17 @@ for ax, (ft_cond, title) in zip(axes, panels):
     ax.grid(True, alpha=0.35)
     ax.set_ylim(0, 100)
     
-    max_cr = df_models['compression_ratio'].max()
-    ax.set_xlim(0, max_cr * 1.05)
+    if ft_cond == "Without FT":
+        ax.set_xlim(0, 40)
+        ax.set_xticks([0, 10, 20, 30, 40])
+    else:
+        ax.set_xlim(0, 100)
+        ax.set_xticks([0, 25, 50, 75, 100])
 
-axes[0].set_ylabel("Accuracy (%)", fontsize=14)
+axes[0].set_ylabel("Accuracy (%)", fontsize=18)
 
-fig.subplots_adjust(wspace=0.06, bottom=0.15, top=0.88)
-fig.supxlabel("Compression Ratio (x)", fontsize=14)
+fig.subplots_adjust(wspace=0.15, bottom=0.15, top=0.88)
+fig.supxlabel("Compression Ratio (x)", fontsize=18)
 
 out_path = os.path.join(PLOT_DIR, "accuracy_vs_compression_by_ft.png")
 plt.savefig(out_path, dpi=300, bbox_inches="tight")
