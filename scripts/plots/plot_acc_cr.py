@@ -105,16 +105,29 @@ for ax, algo in zip(axes, ALGORITHMS):
             linewidths=0.6,
         )
         
-    ax.legend(loc="center", bbox_to_anchor=(40, 40), bbox_transform=ax.transData, framealpha=0.95)
+    # Place legend in 'lower left' for (a) and (c), and 'center right' for (b) (Tucker & CP drop slower, TT drops very fast leaving center-right free)
+    if algo == "TT":
+        ax.legend(loc="center right", framealpha=0.95, fontsize=12.5)
+    else:
+        ax.legend(loc="lower left", framealpha=0.95, fontsize=12.5)
     ax.grid(True, alpha=0.35)
     ax.set_ylim(0, 100)
     # Limit compression ratio to 0-40 and force exact ticks
     ax.set_xlim(0, 40)
     ax.set_xticks([0, 10, 20, 30, 40])
+    
+    # Adjust alignment of edge labels (0 and 40) to keep them within subplot boundaries
+    labels = ax.get_xticklabels()
+    # Ensure they are populated before adjusting
+    plt.draw()
+    labels = ax.get_xticklabels()
+    if len(labels) >= 5:
+        labels[0].set_horizontalalignment('left')
+        labels[-1].set_horizontalalignment('right')
 
 axes[0].set_ylabel("Accuracy (%)", fontsize=18)
 
-fig.subplots_adjust(wspace=0.16, bottom=0.15, top=0.88)
+fig.subplots_adjust(wspace=0.08, bottom=0.15, top=0.88)
 fig.supxlabel("Compression Ratio (x)", fontsize=18)
 
 out_path = os.path.join(PLOT_DIR, "accuracy_vs_compression.png")

@@ -120,7 +120,7 @@ for ax, (ft_cond, title) in zip(axes, panels):
 
 axes[0].set_ylabel("Accuracy (%)", fontsize=18)
 
-fig.subplots_adjust(wspace=0.15, bottom=0.15, top=0.88)
+fig.subplots_adjust(wspace=0.08, bottom=0.15, top=0.88)
 fig.supxlabel("Compression Ratio (x)", fontsize=18)
 
 out_path = os.path.join(PLOT_DIR, "accuracy_vs_compression_by_ft.png")

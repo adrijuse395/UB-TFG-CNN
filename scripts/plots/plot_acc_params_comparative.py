@@ -61,7 +61,7 @@ panels = [
 ]
 
 for ax, (ft_cond, title) in zip(axes, panels):
-    ax.set_title(title, loc="center", fontsize=14, fontweight="bold", pad=12)
+    ax.set_title(title, loc="center", fontsize=18, fontweight="bold", pad=12)
     subset_ft = df_models[df_models["ft_label"] == ft_cond]
     
     for algo in ALGORITHMS:
@@ -109,10 +109,10 @@ for ax, (ft_cond, title) in zip(axes, panels):
     ax.set_xlim(0, max_params_m * 1.05)
     # ax.xaxis.set_major_locator(MultipleLocator(2))
 
-axes[0].set_ylabel("Accuracy (%)", fontsize=14)
+axes[0].set_ylabel("Accuracy (%)", fontsize=18)
 
-fig.subplots_adjust(wspace=0.06, bottom=0.15, top=0.88)
-fig.supxlabel("Total parameters (Millions)", fontsize=14)
+fig.subplots_adjust(wspace=0.08, bottom=0.15, top=0.88)
+fig.supxlabel("Total parameters (Millions)", fontsize=18)
 
 out_path = os.path.join(PLOT_DIR, "accuracy_vs_parameters_by_ft.png")
 plt.savefig(out_path, dpi=300, bbox_inches="tight")

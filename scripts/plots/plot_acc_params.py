@@ -70,7 +70,7 @@ def _smooth_curve(x: np.ndarray, y: np.ndarray, n: int = 250) -> tuple[np.ndarra
 fig, axes = plt.subplots(1, 3, figsize=(14, 4.5), sharey=True)
 
 for ax, algo in zip(axes, ALGORITHMS):
-    ax.set_title(PANEL_LABELS[algo], loc="center", fontsize=17, fontweight="bold", pad=8)
+    ax.set_title(PANEL_LABELS[algo], loc="center", fontsize=18, fontweight="bold", pad=8)
     subset = df_models[df_models["method"] == algo]
     
     for ft_lbl, group in subset.groupby("ft_label"):
@@ -114,6 +114,13 @@ for ax, algo in zip(axes, ALGORITHMS):
     max_params_scaled = max(df_models['total_parameters'].max() / param_divisor, baseline_params / param_divisor if baseline_params else 0)
     ax.set_xlim(0, max_params_scaled * 1.05)
     ax.xaxis.set_major_locator(MaxNLocator(nbins=5, integer=True))
+    
+    # Adjust alignment of edge labels (0 and max) to keep them within subplot boundaries
+    plt.draw()
+    labels = ax.get_xticklabels()
+    if len(labels) >= 2:
+        labels[0].set_horizontalalignment('left')
+        labels[-1].set_horizontalalignment('right')
 
 axes[0].set_ylabel("Accuracy (%)", fontsize=18)
 
