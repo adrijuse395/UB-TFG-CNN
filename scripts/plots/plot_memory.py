@@ -54,7 +54,7 @@ for algo in ALGORITHMS:
     g_no_ft = df_models[(df_models["method"] == algo) & (df_models["fine_tuning_enabled"] == False)].sort_values("total_parameters", ascending=True)
     if g_no_ft.empty: continue
     
-    # Filtro Pareto: Ignorar configuraciones subóptimas (outliers) donde al reducir parámetros se dispara la memoria.
+    # Pareto filter: Ignore suboptimal configurations (outliers) where memory spikes despite reducing parameters.
     valid_rows = []
     current_min_mem = float('inf')
     for idx, row in g_no_ft.iloc[::-1].iterrows():

@@ -300,9 +300,9 @@ def run_experiments_from_config(config_path: str) -> Optional[str]:
         else:
             compressed_row_name = exp_name
 
-        # Always log post-compression metrics (sin FT). Si fine_tuning está activo,
-        # más abajo se añade una segunda fila con el modelo tras FT.
-        print("    [Eval] Post-compression (sin fine-tuning)...")
+        # Always log post-compression metrics (without FT). If fine_tuning is active,
+        # a second row with the fine-tuned model is added below.
+        print("    [Eval] Post-compression (without fine-tuning)...")
         compressed_evaluator = ModelEvaluator(
             experiment_name=compressed_row_name,
             device=device,

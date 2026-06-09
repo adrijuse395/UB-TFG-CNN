@@ -14,7 +14,7 @@ def main() -> None:
     parser.add_argument(
         "--config",
         type=str,
-        default="config.json",
+        default="configs/config.json",
         help="Path to experiment config JSON",
     )
     args = parser.parse_args()

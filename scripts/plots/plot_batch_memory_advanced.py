@@ -95,8 +95,8 @@ for idx, algo in enumerate(ALGORITHMS):
     g_algo = df_merged[df_merged["method"] == algo]
     g_base = df_merged[df_merged["method"] == "Baseline"]
     
-    # Crear un gradiente de color basado en el color original del algoritmo
-    # Va desde un tono claro hasta un tono oscuro (blend con negro)
+    # Create a color gradient based on the algorithm's original color
+    # Ranging from a light tone to a dark tone (blend with black)
     base_color = ALGO_COLORS[algo]
     colors = sns.blend_palette(["white", base_color, "black"], n_colors=12)[2:10]
     

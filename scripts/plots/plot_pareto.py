@@ -66,7 +66,7 @@ ax_3d.set_zlabel("Accuracy (%)", labelpad=12, fontweight="bold")
 ax_3d.set_title("3D Space: Accuracy vs Latency vs Memory", pad=25, fontsize=15, fontweight="bold")
 ax_3d.legend(loc="center left", bbox_to_anchor=(1.05, 0.5), framealpha=0.95)
 
-# Ajustamos el ángulo de visión para que la caída se vea clara
+# Adjust viewing angle to make the drop clearly visible
 ax_3d.view_init(elev=25, azim=-45)
 
 out_3d = os.path.join(PLOT_DIR, "pareto_3d.png")
@@ -77,7 +77,7 @@ plt.close(fig_3d)
 # =========================================================================
 # 2. GRAFICO 2D BUBBLE (Pareto Estándar en Papers: x=Latencia, y=Accuracy, Size=Memoria)
 # =========================================================================
-# Este gráfico se lee mucho mejor en papel/pdf.
+# This plot is much easier to read on paper/pdf.
 sns.set_theme(style="whitegrid", context="paper", font_scale=1.35)
 plt.rcParams.update({
     "font.family": "serif",
@@ -102,7 +102,7 @@ if not baseline.empty:
         edgecolors="black",
         linewidths=1.5
     )
-    # Dibujamos un punto central para indicar la posición exacta
+    # Draw a central point to indicate exact position
     ax_2d.scatter(
         baseline["latency_ms"],
         baseline["accuracy"],
@@ -140,7 +140,7 @@ ax_2d.set_ylabel("Accuracy (%)  [↑ Más alto es mejor]", fontsize=13, fontweig
 ax_2d.set_title("Pareto Front: Accuracy vs Latency (Bubble Size = Memory)", fontsize=15, fontweight="bold", pad=20)
 ax_2d.grid(True, alpha=0.35)
 
-# Para que la leyenda no tenga puntos gigantes, forzamos un tamaño estándar
+# Force standard size so legend doesn't show huge bubbles
 handles, labels = ax_2d.get_legend_handles_labels()
 # Los scatter que representan el centro (index impar/pares)
 unique_labels = dict(zip(labels, handles)) 
