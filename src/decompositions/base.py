@@ -12,6 +12,7 @@ class BaseDecomposedLayer(nn.Module, ABC):
         super(BaseDecomposedLayer, self).__init__()
         self.compressed_ops = None
         self.original_type = None
+        self.reconstruction_error = 0.0
 
     @abstractmethod
     def compress(self, layer: Union[nn.Conv2d, nn.Linear], **kwargs):

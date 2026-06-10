@@ -73,6 +73,17 @@ class ModelReplacer:
         ModelReplacer._validate_targets(module, paths)
         ModelReplacer._replace_recursive(module, decomposition_class, paths, current_path="", **kwargs)
         ModelReplacer._assert_all_targets_decomposed(module, paths)
+        
+        # Calculate mean reconstruction error across all replaced layers
+        errors = []
+        for path in paths:
+            layer = ModelReplacer._module_at_path(module, path)
+            errors.append(getattr(layer, "reconstruction_error", 0.0))
+        
+        if errors:
+            module._mean_reconstruction_error = sum(errors) / len(errors)
+        else:
+            module._mean_reconstruction_error = 0.0
 
     @staticmethod
     def _replace_recursive(

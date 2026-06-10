@@ -1,0 +1,44 @@
+{
+    "global_settings": {
+        "dataset": "cifar10",
+        "model": "vgg11_bn",
+        "batch_size": 256,
+        "use_gpu": true,
+        "num_classes": 10,
+        "pretrained": true
+    },
+    "resource_limits": {
+        "max_rank": 4000,
+        "max_batch_size": 256
+    },
+    "experiments": [
+        {
+            "name": "SVD rank 0100",
+            "method": "SVD",
+            "target_layers": ["features.0"],
+            "rank": 10,
+            "fine_tuning": false
+        },
+        {
+            "name": "Tucker rank 0100",
+            "method": "Tucker",
+            "target_layers": ["features.0"],
+            "rank": 10,
+            "fine_tuning": false
+        },
+        {
+            "name": "CP rank 0100",
+            "method": "CP",
+            "target_layers": ["features.0"],
+            "rank": 10,
+            "fine_tuning": false
+        },
+        {
+            "name": "TT rank 0100",
+            "method": "TT",
+            "target_layers": ["features.0"],
+            "rank": 10,
+            "fine_tuning": false
+        }
+    ]
+}

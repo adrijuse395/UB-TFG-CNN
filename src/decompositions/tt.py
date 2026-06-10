@@ -63,6 +63,11 @@ class TTDecomposedLayer(BaseDecomposedLayer):
 
         factors = tensor_train(W, rank=ranks)
 
+        # Calculate reconstruction error (Frobenius norm)
+        W_hat = tl.tt_to_tensor(factors)
+        error = torch.norm(W - W_hat) / torch.norm(W)
+        self.reconstruction_error = error.item()
+
         # We need a custom module to handle the on-the-fly reconstruction
         self.compressed_ops = _TTConv2dModule(factors, layer)
 
@@ -83,6 +88,12 @@ class TTDecomposedLayer(BaseDecomposedLayer):
             ranks = rank
 
         factors = tensor_train(W, rank=ranks)
+        
+        # Calculate reconstruction error
+        W_hat = tl.tt_to_tensor(factors)
+        error = torch.norm(W - W_hat) / torch.norm(W)
+        self.reconstruction_error = error.item()
+        
         self.compressed_ops = _TTLinearModule(factors, layer)
 
 

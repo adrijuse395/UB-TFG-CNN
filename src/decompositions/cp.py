@@ -270,6 +270,11 @@ class CPDecomposedLayer(BaseDecomposedLayer):
             init=cp_init,
             callback=_als_guard_cb,
         )
+        
+        # Calculate reconstruction error (Frobenius norm)
+        # Note: cw is all-ones in this implementation so factors contain full magnitude
+        self.reconstruction_error = _cp_als_reconstruction_error(W, factors)
+        
         del W
         gc.collect()
 
@@ -326,6 +331,11 @@ class CPDecomposedLayer(BaseDecomposedLayer):
         U_trunc = U[:, :rank]
         S_trunc = S[:rank]
         Vh_trunc = Vh[:rank, :]
+
+        # Calculate reconstruction error
+        W_hat = U_trunc @ torch.diag(S_trunc) @ Vh_trunc
+        error = torch.norm(W - W_hat) / torch.norm(W)
+        self.reconstruction_error = error.item()
 
         # W ≈ U · diag(S) · Vh  →  (U · diag(S)) · Vh
         # First layer computes Vh_trunc @ x  (Vh is already V^T)

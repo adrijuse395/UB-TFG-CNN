@@ -67,6 +67,11 @@ class SVDDecomposedLayer(BaseDecomposedLayer):
         S_trunc = S[:effective_rank]
         Vh_trunc = Vh[:effective_rank, :]
         
+        # Calculate reconstruction error (Frobenius norm)
+        W_mat_hat = U_trunc @ torch.diag(S_trunc) @ Vh_trunc
+        error = torch.norm(W_mat - W_mat_hat) / torch.norm(W_mat)
+        self.reconstruction_error = error.item()
+        
         # Layer 1: computes S * Vh
         # Vh_trunc has shape (rank, in_ch * kh * kw). We multiply by S and reshape to original spatial dims
         W1 = (S_trunc.unsqueeze(-1) * Vh_trunc).reshape(effective_rank, in_ch, kh, kw)
@@ -110,6 +115,11 @@ class SVDDecomposedLayer(BaseDecomposedLayer):
         U_trunc = U[:, :rank]
         S_trunc = S[:rank]
         Vh_trunc = Vh[:rank, :]
+        
+        # Calculate reconstruction error (Frobenius norm)
+        W_hat = U_trunc @ torch.diag(S_trunc) @ Vh_trunc
+        error = torch.norm(W - W_hat) / torch.norm(W)
+        self.reconstruction_error = error.item()
         
         first_layer = nn.Linear(layer.in_features, rank, bias=False)
         first_layer.weight.data = Vh_trunc

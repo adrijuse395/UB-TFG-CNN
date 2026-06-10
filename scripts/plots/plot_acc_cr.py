@@ -42,7 +42,7 @@ ALGO_COLORS = {
     "CP":     "#1f77b4",
     "Tucker": "#d62728",
     "TT":     "#2ca02c",
-    "SVD":    "#f08c14",
+    "SVD":    "#d4b200",
 }
 FT_LINESTYLES = {"With FT": "-", "Without FT": "-"}
 FT_LINEWIDTHS = {"With FT": 1.2, "Without FT": 2.8}

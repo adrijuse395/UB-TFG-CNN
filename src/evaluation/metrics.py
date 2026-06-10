@@ -111,6 +111,8 @@ class ModelEvaluator:
             self._evaluate_on_dataset(model, dataloader, record_cuda_peak=is_cuda)
         )
 
+        reconstruction_error = getattr(model, "_mean_reconstruction_error", 0.0)
+
         results = {
             "experiment_name": self.experiment_name,
             "method": method,
@@ -129,6 +131,7 @@ class ModelEvaluator:
             "precision": round(precision, 4),
             "recall": round(recall, 4),
             "f1_score": round(f1, 4),
+            "reconstruction_error": round(reconstruction_error, 6),
         }
 
         print(f"       Parameters       : {total_params:,}")

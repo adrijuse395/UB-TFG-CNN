@@ -27,7 +27,7 @@ ALGO_COLORS = {
     "CP":     "#1f77b4",
     "Tucker": "#d62728",
     "TT":     "#2ca02c",
-    "SVD":    "#f08c14",
+    "SVD":    "#d4b200",
 }
 ALGO_LINESTYLES = {"SVD": "-", "Tucker": "-", "TT": "-", "CP": "-"}
 

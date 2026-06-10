@@ -62,6 +62,11 @@ class TuckerDecomposedLayer(BaseDecomposedLayer):
         ranks = [ranks[0], ranks[1], layer.kernel_size[0], layer.kernel_size[1]]
         core, factors = tucker(W, rank=ranks, init='svd')
         
+        # Calculate reconstruction error (Frobenius norm)
+        W_hat = tl.tucker_to_tensor((core, factors))
+        error = torch.norm(W - W_hat) / torch.norm(W)
+        self.reconstruction_error = error.item()
+        
         # Absorb the spatial factors back into the core to keep them uncompressed
         core = tl.tenalg.multi_mode_dot(core, [factors[2], factors[3]], modes=[2, 3])
         
@@ -106,6 +111,11 @@ class TuckerDecomposedLayer(BaseDecomposedLayer):
         U_trunc = U[:, :rank]
         S_trunc = S[:rank]
         Vh_trunc = Vh[:rank, :]
+
+        # Calculate reconstruction error
+        W_hat = U_trunc @ torch.diag(S_trunc) @ Vh_trunc
+        error = torch.norm(W - W_hat) / torch.norm(W)
+        self.reconstruction_error = error.item()
 
         # W ≈ U · diag(S) · Vh  →  (U · diag(S)) · Vh
         # First layer computes Vh_trunc @ x  (Vh is already V^T)

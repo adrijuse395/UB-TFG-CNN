@@ -36,6 +36,7 @@ CSV_HEADERS = [
     "precision",
     "recall",
     "f1_score",
+    "reconstruction_error",
 ]
 
 
