@@ -14,7 +14,7 @@ ALGO_COLORS = {
     "CP":     "#1f77b4",
     "Tucker": "#d62728",
     "TT":     "#2ca02c",
-    "SVD":    "#d4b200",
+    "SVD":    "#f08c14",
 }
 
 df_ft = df[(df["fine_tuning_enabled"] == True) | (df["method"].isna()) | (df["method"] == "None")].copy()

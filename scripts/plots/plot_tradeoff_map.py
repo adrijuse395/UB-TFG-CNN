@@ -116,7 +116,7 @@ ALGO_COLORS = {
     "CP":     "#1f77b4",
     "Tucker": "#d62728",
     "TT":     "#2ca02c",
-    "SVD":    "#d4b200",
+    "SVD":    "#f08c14",
 }
 
 methods = df_models["method"].unique()
